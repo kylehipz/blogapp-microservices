@@ -1,4 +1,5 @@
 # blogapp-microservices
+This is a simple application that can handle blog posts, just like medium, twitter, facebook. The real purpose for creating this application is to learn new technologies and practice creating scalable and efficient software architecture
 
 # Functional Requirements
 * A user should be able to register and login
