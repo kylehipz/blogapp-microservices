@@ -24,6 +24,7 @@ This is a simple application that can handle blog posts, just like medium, twitt
   * 1M follow relationships
 
 # System Architecture
+![image](https://github.com/user-attachments/assets/5ada9768-895b-4624-863b-2c460e51f612)
 
 # Tech Stack
 * Golang + Echo
