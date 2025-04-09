@@ -1,9 +1,13 @@
 package main
 
-import "github.com/kylehipz/blogapp-microservices/libs/pkg/api"
+import (
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
+
+	"github.com/kylehipz/blogapp-microservices/blogs/internal"
+)
 
 func main() {
-	apiServer := api.NewEchoAPIServer(":9090")
+	apiServer := api.NewEchoAPIServer(internal.API_SERVER_PORT)
 
 	routes := []*api.EchoAPIRoute{}
 	apiServer.Run(routes)
