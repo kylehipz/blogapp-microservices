@@ -3,10 +3,14 @@ version: "3.9"
 services:
   auth-service:
     build:
-      context: $PWD/auth
       dockerfile: dev.Dockerfile
+      context: .
+      args:
+        DIR: auth
     image: auth-service
     container_name: auth-service
+    volumes:
+      - $PWD/auth:/app/auth
     environment:
       PORT: 9090
     ports:
@@ -14,10 +18,14 @@ services:
 
   blogs-service:
     build:
-      context: $PWD/blogs
       dockerfile: dev.Dockerfile
+      context: .
+      args:
+        DIR: blogs
     image: blogs-service
     container_name: blogs-service
+    volumes:
+      - $PWD/blogs:/app/blogs
     environment:
       PORT: 9091
     ports:
@@ -25,10 +33,14 @@ services:
 
   follow-service:
     build:
-      context: $PWD/follow
       dockerfile: dev.Dockerfile
+      context: .
+      args:
+        DIR: follow
     image: follow-service
     container_name: follow-service
+    volumes:
+      - $PWD/follow:/app/follow
     environment:
       PORT: 9092
     ports:
@@ -36,10 +48,14 @@ services:
 
   home-feed-service:
     build:
-      context: $PWD/home-feed
       dockerfile: dev.Dockerfile
+      context: .
+      args:
+        DIR: home-feed
     image: home-feed-service
     container_name: home-feed-service
+    volumes:
+      - $PWD/home-feed:/app/home-feed
     environment:
       PORT: 9093
     ports:
@@ -47,10 +63,14 @@ services:
 
   search-service:
     build:
-      context: $PWD/search
       dockerfile: dev.Dockerfile
+      context: .
+      args:
+        DIR: search
     image: search-service
     container_name: search-service
+    volumes:
+      - $PWD/search:/app/search
     environment:
       PORT: 9094
     ports:
