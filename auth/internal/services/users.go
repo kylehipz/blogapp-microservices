@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UsersService struct {
@@ -16,10 +17,15 @@ func (u *UsersService) CreateUser(
 	email string,
 	password string,
 ) (*db.User, error) {
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		return nil, err
+	}
+
 	createdUser, err := u.Queries.CreateUser(ctx, db.CreateUserParams{
 		Username: username,
 		Email:    email,
-		Password: password,
+		Password: string(hashBytes),
 	})
 	if err != nil {
 		return nil, err

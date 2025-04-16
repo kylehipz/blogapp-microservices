@@ -3,7 +3,7 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username VARCHAR(50) NOT NULL,
   email VARCHAR(50) NOT NULL,
-  password VARCHAR(50) NOT NULL,
+  password text NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT now(),
   CONSTRAINT unique_username UNIQUE (username),
   CONSTRAINT unique_email UNIQUE (email)

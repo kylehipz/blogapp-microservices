@@ -27,8 +27,6 @@ func (u *UsersHandler) RegisterUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	fmt.Printf("%+v", body)
-
 	createdUser, err := u.UsersService.CreateUser(
 		context.TODO(),
 		body.Username,
