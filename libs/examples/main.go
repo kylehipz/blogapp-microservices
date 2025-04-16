@@ -8,5 +8,5 @@ func main() {
 	routes := []*api.EchoAPIRoute{}
 
 	apiServer := api.NewEchoAPIServer(":9090")
-	apiServer.Run(routes)
+	apiServer.Run("/libs", routes)
 }

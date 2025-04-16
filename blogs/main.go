@@ -13,5 +13,5 @@ func main() {
 	apiServer := api.NewEchoAPIServer(apiServerPort)
 
 	routes := []*api.EchoAPIRoute{}
-	apiServer.Run(routes)
+	apiServer.Run("/blogs", routes)
 }
