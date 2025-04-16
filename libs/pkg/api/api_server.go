@@ -7,13 +7,6 @@ type EchoAPIServer struct {
 	addr string
 }
 
-type EchoAPIRoute struct {
-	method      string
-	path        string
-	handler     echo.HandlerFunc
-	middlewares []echo.MiddlewareFunc
-}
-
 func NewEchoAPIServer(addr string) *EchoAPIServer {
 	e := echo.New()
 
@@ -32,15 +25,15 @@ func (a *EchoAPIServer) Run(routes []*EchoAPIRoute) {
 // Registers the routes
 func (a *EchoAPIServer) RegisterRoutes(routes []*EchoAPIRoute) {
 	for _, route := range routes {
-		switch route.method {
+		switch route.Method {
 		case "GET":
-			a.e.GET(route.path, route.handler, route.middlewares...)
+			a.e.GET(route.Path, route.Handler, route.Middlewares...)
 		case "POST":
-			a.e.POST(route.path, route.handler, route.middlewares...)
+			a.e.POST(route.Path, route.Handler, route.Middlewares...)
 		case "PATCH":
-			a.e.PATCH(route.path, route.handler, route.middlewares...)
+			a.e.PATCH(route.Path, route.Handler, route.Middlewares...)
 		case "DELETE":
-			a.e.DELETE(route.path, route.handler, route.middlewares...)
+			a.e.DELETE(route.Path, route.Handler, route.Middlewares...)
 		}
 	}
 }
