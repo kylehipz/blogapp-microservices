@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
@@ -18,13 +20,13 @@ func New(conn *pgx.Conn) []*api.EchoAPIRoute {
 	routes := []*api.EchoAPIRoute{
 		{
 			Path:        "/login",
-			Method:      "GET",
+			Method:      http.MethodPost,
 			Handler:     usersHandler.LoginUser,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
 		{
 			Path:        "/register",
-			Method:      "GET",
+			Method:      http.MethodPost,
 			Handler:     usersHandler.RegisterUser,
 			Middlewares: []echo.MiddlewareFunc{},
 		},

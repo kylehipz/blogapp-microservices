@@ -24,5 +24,6 @@ type User struct {
 	ID        pgtype.UUID
 	Username  string
 	Email     string
+	Password  string
 	CreatedAt pgtype.Timestamp
 }

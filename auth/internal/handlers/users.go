@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 
@@ -12,9 +14,32 @@ type UsersHandler struct {
 	UsersService services.UsersService
 }
 
+type RegisterUserRequestBody struct {
+	Username string
+	Password string
+	Email    string
+}
+
 func (u *UsersHandler) RegisterUser(c echo.Context) error {
-	fmt.Println("REGISTER USER!")
-	return nil
+	body := new(RegisterUserRequestBody)
+
+	if err := c.Bind(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	fmt.Printf("%+v", body)
+
+	createdUser, err := u.UsersService.CreateUser(
+		context.TODO(),
+		body.Username,
+		body.Email,
+		body.Password,
+	)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusCreated, createdUser)
 }
 
 func (u *UsersHandler) LoginUser(c echo.Context) error {
