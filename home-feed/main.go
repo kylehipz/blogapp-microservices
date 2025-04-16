@@ -14,11 +14,14 @@ import (
 
 func main() {
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, "user=pqgotest dbname=pqgotest sslmode=verify-full")
+
+	// start database
+	conn, err := pgx.Connect(ctx, internal.DATABASE_URL)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close(ctx)
+	log.Println("Successfully connected to the database")
 
 	db.New(conn)
 
@@ -26,5 +29,5 @@ func main() {
 	apiServer := api.NewEchoAPIServer(apiServerPort)
 
 	routes := []*api.EchoAPIRoute{}
-	apiServer.Run(routes)
+	apiServer.Run("/home-feed", routes)
 }

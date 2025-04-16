@@ -17,23 +17,25 @@ func NewEchoAPIServer(addr string) *EchoAPIServer {
 }
 
 // Starts the API Server
-func (a *EchoAPIServer) Run(routes []*EchoAPIRoute) {
-	a.RegisterRoutes(routes)
+func (a *EchoAPIServer) Run(prefixPath string, routes []*EchoAPIRoute) {
+	a.RegisterRoutes(prefixPath, routes)
 	a.e.Logger.Fatal(a.e.Start(a.addr))
 }
 
 // Registers the routes
-func (a *EchoAPIServer) RegisterRoutes(routes []*EchoAPIRoute) {
+func (a *EchoAPIServer) RegisterRoutes(prefixPath string, routes []*EchoAPIRoute) {
+	grp := a.e.Group(prefixPath)
+
 	for _, route := range routes {
 		switch route.Method {
 		case "GET":
-			a.e.GET(route.Path, route.Handler, route.Middlewares...)
+			grp.GET(route.Path, route.Handler, route.Middlewares...)
 		case "POST":
-			a.e.POST(route.Path, route.Handler, route.Middlewares...)
+			grp.POST(route.Path, route.Handler, route.Middlewares...)
 		case "PATCH":
-			a.e.PATCH(route.Path, route.Handler, route.Middlewares...)
+			grp.PATCH(route.Path, route.Handler, route.Middlewares...)
 		case "DELETE":
-			a.e.DELETE(route.Path, route.Handler, route.Middlewares...)
+			grp.DELETE(route.Path, route.Handler, route.Middlewares...)
 		}
 	}
 }
