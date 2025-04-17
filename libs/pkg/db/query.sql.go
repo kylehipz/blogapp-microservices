@@ -11,7 +11,84 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createUser = `-- name: CreateUser :one
+
+INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, password, created_at
+`
+
+type CreateUserParams struct {
+	Username string
+	Email    string
+	Password string
+}
+
+// Users
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email, arg.Password)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const findUser = `-- name: FindUser :one
+SELECT id, username, email, password, created_at FROM users WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) FindUser(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, findUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const findUserByEmail = `-- name: FindUserByEmail :one
+SELECT id, username, email, password, created_at FROM users WHERE email = $1 LIMIT 1
+`
+
+func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, findUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const findUserByUsername = `-- name: FindUserByUsername :one
+SELECT id, username, email, password, created_at FROM users WHERE username = $1 LIMIT 1
+`
+
+func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, findUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getHomeFeed = `-- name: GetHomeFeed :many
+
 SELECT b.id, b.author, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
 WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at LIMIT $3
 `
@@ -22,6 +99,7 @@ type GetHomeFeedParams struct {
 	Limit     int32
 }
 
+// Home feed
 func (q *Queries) GetHomeFeed(ctx context.Context, arg GetHomeFeedParams) ([]Blog, error) {
 	rows, err := q.db.Query(ctx, getHomeFeed, arg.Follower, arg.CreatedAt, arg.Limit)
 	if err != nil {

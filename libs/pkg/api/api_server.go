@@ -1,6 +1,11 @@
 package api
 
-import "github.com/labstack/echo/v4"
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
 
 type EchoAPIServer struct {
 	e    *echo.Echo
@@ -19,6 +24,9 @@ func NewEchoAPIServer(addr string) *EchoAPIServer {
 // Starts the API Server
 func (a *EchoAPIServer) Run(prefixPath string, routes []*EchoAPIRoute) {
 	a.RegisterRoutes(prefixPath, routes)
+	a.e.Use(middleware.Logger())
+	a.e.Use(middleware.Recover())
+
 	a.e.Logger.Fatal(a.e.Start(a.addr))
 }
 
@@ -28,13 +36,13 @@ func (a *EchoAPIServer) RegisterRoutes(prefixPath string, routes []*EchoAPIRoute
 
 	for _, route := range routes {
 		switch route.Method {
-		case "GET":
+		case http.MethodGet:
 			grp.GET(route.Path, route.Handler, route.Middlewares...)
-		case "POST":
+		case http.MethodPost:
 			grp.POST(route.Path, route.Handler, route.Middlewares...)
-		case "PATCH":
+		case http.MethodPatch:
 			grp.PATCH(route.Path, route.Handler, route.Middlewares...)
-		case "DELETE":
+		case http.MethodDelete:
 			grp.DELETE(route.Path, route.Handler, route.Middlewares...)
 		}
 	}
