@@ -15,7 +15,10 @@ import (
 
 func main() {
 	// load .env
-	loadenv.Load()
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" || environment == "development" {
+		loadenv.Load()
+	}
 
 	// start database
 	ctx := context.Background()
