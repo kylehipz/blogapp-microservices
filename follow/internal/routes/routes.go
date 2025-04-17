@@ -19,14 +19,14 @@ func New(conn *pgx.Conn) []*api.EchoAPIRoute {
 
 	routes := []*api.EchoAPIRoute{
 		{
-			Path:        "/login",
+			Path:        "/follow",
 			Method:      http.MethodPost,
 			Handler:     followHandler.FollowUser,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
 		{
-			Path:        "/register",
-			Method:      http.MethodPost,
+			Path:        "/unfollow",
+			Method:      http.MethodDelete,
 			Handler:     followHandler.UnfollowUser,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
