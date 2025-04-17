@@ -12,6 +12,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createBlog = `-- name: CreateBlog :one
+
+INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING id, author, content, created_at
+`
+
+type CreateBlogParams struct {
+	Author  uuid.UUID
+	Content string
+}
+
+// Blogs
+func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, error) {
+	row := q.db.QueryRow(ctx, createBlog, arg.Author, arg.Content)
+	var i Blog
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, password, created_at
@@ -32,6 +55,31 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteBlog = `-- name: DeleteBlog :exec
+DELETE FROM blogs WHERE id = $1
+`
+
+func (q *Queries) DeleteBlog(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteBlog, id)
+	return err
+}
+
+const findBlog = `-- name: FindBlog :one
+SELECT id, author, content, created_at FROM blogs WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) FindBlog(ctx context.Context, id uuid.UUID) (Blog, error) {
+	row := q.db.QueryRow(ctx, findBlog, id)
+	var i Blog
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Content,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -155,4 +203,25 @@ type UnfollowUserParams struct {
 func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) error {
 	_, err := q.db.Exec(ctx, unfollowUser, arg.Follower, arg.Followee)
 	return err
+}
+
+const updateBlog = `-- name: UpdateBlog :one
+UPDATE blogs SET content = $2 WHERE id = $1 RETURNING id, author, content, created_at
+`
+
+type UpdateBlogParams struct {
+	ID      uuid.UUID
+	Content string
+}
+
+func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, error) {
+	row := q.db.QueryRow(ctx, updateBlog, arg.ID, arg.Content)
+	var i Blog
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
 }
