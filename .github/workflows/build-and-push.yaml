@@ -30,6 +30,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            DIR={{ matrix.service }}
+            DIR=${{ matrix.service }}
           tags: |
-            kylethenewbie/blogapp-{{ matrix.service }}:latest
+            kylethenewbie/blogapp-${{ matrix.service }}:latest
