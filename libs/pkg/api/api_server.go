@@ -47,3 +47,9 @@ func (a *EchoAPIServer) RegisterRoutes(prefixPath string, routes []*EchoAPIRoute
 		}
 	}
 }
+
+func (a *EchoAPIServer) Use(middlewares []echo.MiddlewareFunc) {
+	for _, middleware := range middlewares {
+		a.e.Use(middleware)
+	}
+}
