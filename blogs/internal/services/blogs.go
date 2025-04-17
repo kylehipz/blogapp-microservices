@@ -66,3 +66,17 @@ func (b *BlogsService) UpdateBlog(
 
 	return &createdBlog, err
 }
+
+func (b *BlogsService) DeleteBlog(ctx context.Context, blog string) error {
+	blogID, err := uuid.Parse(blog)
+	if err != nil {
+		return err
+	}
+
+	err = b.Queries.DeleteBlog(ctx, blogID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

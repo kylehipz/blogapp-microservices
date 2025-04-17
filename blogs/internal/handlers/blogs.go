@@ -62,5 +62,12 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 }
 
 func (b *BlogsHandler) DeleteBlog(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{"notImplemented": true})
+	blogID := c.Param("id")
+
+	err := b.BlogsService.DeleteBlog(c.Request().Context(), blogID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"success": true})
 }
