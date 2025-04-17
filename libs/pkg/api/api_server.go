@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type EchoAPIServer struct {
@@ -24,7 +24,9 @@ func NewEchoAPIServer(addr string) *EchoAPIServer {
 // Starts the API Server
 func (a *EchoAPIServer) Run(prefixPath string, routes []*EchoAPIRoute) {
 	a.RegisterRoutes(prefixPath, routes)
-	a.e.Logger.SetLevel(log.DEBUG)
+	a.e.Use(middleware.Logger())
+	a.e.Use(middleware.Recover())
+
 	a.e.Logger.Fatal(a.e.Start(a.addr))
 }
 
