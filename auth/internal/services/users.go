@@ -10,9 +10,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/kylehipz/blogapp-microservices/auth/internal/types"
 )
 
 var InvalidCredentialsError = errors.New("Invalid Credentials")
