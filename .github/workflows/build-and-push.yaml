@@ -1,6 +1,9 @@
 name: Build Microservices
 run-name: Building docker images from the microservices
-on: [push]
+on:
+  push:
+    branches:
+      - main
 jobs:
   Build-and-Push:
     runs-on: ubuntu-latest
