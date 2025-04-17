@@ -34,7 +34,14 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 }
 
 func (b *BlogsHandler) GetBlog(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{"notImplemented": true})
+	blogID := c.Param("id")
+
+	blog, err := b.BlogsService.GetBlog(c.Request().Context(), blogID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, blog)
 }
 
 func (b *BlogsHandler) UpdateBlog(c echo.Context) error {

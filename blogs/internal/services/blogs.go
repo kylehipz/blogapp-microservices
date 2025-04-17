@@ -31,3 +31,17 @@ func (b *BlogsService) CreateBlog(
 
 	return &createdBlog, err
 }
+
+func (b *BlogsService) GetBlog(ctx context.Context, blog string) (*db.Blog, error) {
+	blogID, err := uuid.Parse(blog)
+	if err != nil {
+		return nil, err
+	}
+
+	existingBlog, err := b.Queries.FindBlog(ctx, blogID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &existingBlog, nil
+}
