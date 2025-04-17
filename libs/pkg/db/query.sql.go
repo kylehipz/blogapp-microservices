@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -40,7 +41,7 @@ const findUser = `-- name: FindUser :one
 SELECT id, username, email, password, created_at FROM users WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) FindUser(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) FindUser(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, findUser, id)
 	var i User
 	err := row.Scan(
@@ -92,8 +93,8 @@ INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING follower, foll
 `
 
 type FollowUserParams struct {
-	Follower pgtype.UUID
-	Followee pgtype.UUID
+	Follower uuid.UUID
+	Followee uuid.UUID
 }
 
 // Follow
@@ -111,7 +112,7 @@ WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at LIMIT $3
 `
 
 type GetHomeFeedParams struct {
-	Follower  pgtype.UUID
+	Follower  uuid.UUID
 	CreatedAt pgtype.Timestamp
 	Limit     int32
 }
@@ -147,8 +148,8 @@ DELETE FROM follow WHERE follower = $1 and followee = $2
 `
 
 type UnfollowUserParams struct {
-	Follower pgtype.UUID
-	Followee pgtype.UUID
+	Follower uuid.UUID
+	Followee uuid.UUID
 }
 
 func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) error {
