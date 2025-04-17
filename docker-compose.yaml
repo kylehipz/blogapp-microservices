@@ -1,6 +1,22 @@
 version: "3.9"
 
 services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DIR: auth
+    environment:
+      PORT: 9091
+      DATABASE_URL: "postgres://admin:password@db:5432/blogapp"
+      JWT_SECRET: secret
+      ENVIRONMENT: testing
+    ports:
+      - 9091:9091
+    restart: always
+    depends_on:
+      - db
   db:
     image: postgres:alpine
     restart: always

@@ -13,7 +13,10 @@ import (
 )
 
 func main() {
-	loadenv.Load()
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" || environment == "development" {
+		loadenv.Load()
+	}
 	ctx := context.Background()
 
 	// start database
