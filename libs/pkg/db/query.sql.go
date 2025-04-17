@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -40,7 +41,7 @@ const findUser = `-- name: FindUser :one
 SELECT id, username, email, password, created_at FROM users WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) FindUser(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) FindUser(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, findUser, id)
 	var i User
 	err := row.Scan(
@@ -87,6 +88,23 @@ func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User
 	return i, err
 }
 
+const followUser = `-- name: FollowUser :one
+INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING follower, followee
+`
+
+type FollowUserParams struct {
+	Follower uuid.UUID
+	Followee uuid.UUID
+}
+
+// Follow
+func (q *Queries) FollowUser(ctx context.Context, arg FollowUserParams) (Follow, error) {
+	row := q.db.QueryRow(ctx, followUser, arg.Follower, arg.Followee)
+	var i Follow
+	err := row.Scan(&i.Follower, &i.Followee)
+	return i, err
+}
+
 const getHomeFeed = `-- name: GetHomeFeed :many
 
 SELECT b.id, b.author, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
@@ -94,7 +112,7 @@ WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at LIMIT $3
 `
 
 type GetHomeFeedParams struct {
-	Follower  pgtype.UUID
+	Follower  uuid.UUID
 	CreatedAt pgtype.Timestamp
 	Limit     int32
 }
@@ -123,4 +141,18 @@ func (q *Queries) GetHomeFeed(ctx context.Context, arg GetHomeFeedParams) ([]Blo
 		return nil, err
 	}
 	return items, nil
+}
+
+const unfollowUser = `-- name: UnfollowUser :exec
+DELETE FROM follow WHERE follower = $1 and followee = $2
+`
+
+type UnfollowUserParams struct {
+	Follower uuid.UUID
+	Followee uuid.UUID
+}
+
+func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) error {
+	_, err := q.db.Exec(ctx, unfollowUser, arg.Follower, arg.Followee)
+	return err
 }

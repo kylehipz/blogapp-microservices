@@ -5,23 +5,24 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Blog struct {
-	ID        pgtype.UUID
-	Author    pgtype.UUID
+	ID        uuid.UUID
+	Author    uuid.UUID
 	Content   string
 	CreatedAt pgtype.Timestamp
 }
 
 type Follow struct {
-	Follower pgtype.UUID
-	Followee pgtype.UUID
+	Follower uuid.UUID
+	Followee uuid.UUID
 }
 
 type User struct {
-	ID        pgtype.UUID
+	ID        uuid.UUID
 	Username  string
 	Email     string
 	Password  string
