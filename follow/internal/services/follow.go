@@ -36,3 +36,29 @@ func (f *FollowService) FollowUser(
 
 	return &follow, nil
 }
+
+func (f *FollowService) UnfollowUser(
+	ctx context.Context,
+	follower string,
+	followee string,
+) error {
+	followerID, err := uuid.Parse(follower)
+	if err != nil {
+		return err
+	}
+
+	followeeID, err := uuid.Parse(follower)
+	if err != nil {
+		return err
+	}
+
+	err = f.Queries.UnfollowUser(ctx, db.UnfollowUserParams{
+		Follower: followerID,
+		Followee: followeeID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
