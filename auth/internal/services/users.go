@@ -11,19 +11,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/kylehipz/blogapp-microservices/auth/internal/types"
 )
 
 var InvalidCredentialsError = errors.New("Invalid Credentials")
 
 type UsersService struct {
 	Queries *db.Queries
-}
-
-type jwtCustomClaims struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	jwt.RegisteredClaims
 }
 
 func (u *UsersService) CreateUser(
@@ -67,11 +62,13 @@ func (u *UsersService) Login(
 	}
 
 	// generate jwt
-	claims := &jwtCustomClaims{
-		user.ID.String(),
-		user.Username,
-		user.Email,
-		jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24))},
+	claims := &types.JwtCustomClaims{
+		ID:       user.ID.String(),
+		Username: user.Username,
+		Email:    user.Email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

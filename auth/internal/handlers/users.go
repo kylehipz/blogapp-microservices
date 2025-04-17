@@ -57,3 +57,7 @@ func (u *UsersHandler) LoginUser(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, echo.Map{"accessToken": accessToken})
 }
+
+func (u *UsersHandler) TestRoute(c echo.Context) error {
+	return c.JSON(http.StatusOK, echo.Map{"success": true})
+}
