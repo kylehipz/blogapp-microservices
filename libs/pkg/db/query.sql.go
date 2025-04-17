@@ -7,9 +7,9 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createBlog = `-- name: CreateBlog :one
@@ -161,7 +161,7 @@ WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at LIMIT $3
 
 type GetHomeFeedParams struct {
 	Follower  uuid.UUID
-	CreatedAt pgtype.Timestamp
+	CreatedAt time.Time
 	Limit     int32
 }
 
