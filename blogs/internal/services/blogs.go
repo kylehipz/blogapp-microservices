@@ -45,3 +45,24 @@ func (b *BlogsService) GetBlog(ctx context.Context, blog string) (*db.Blog, erro
 
 	return &existingBlog, nil
 }
+
+func (b *BlogsService) UpdateBlog(
+	ctx context.Context,
+	blog string,
+	content string,
+) (*db.Blog, error) {
+	blogID, err := uuid.Parse(blog)
+	if err != nil {
+		return nil, err
+	}
+
+	createdBlog, err := b.Queries.UpdateBlog(ctx, db.UpdateBlogParams{
+		ID:      blogID,
+		Content: content,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &createdBlog, err
+}

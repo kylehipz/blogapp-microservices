@@ -45,7 +45,20 @@ func (b *BlogsHandler) GetBlog(c echo.Context) error {
 }
 
 func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
-	return c.JSON(http.StatusOK, echo.Map{"notImplemented": true})
+	blogID := c.Param("id")
+
+	body := new(CreateBlogRequestBody)
+
+	if err := c.Bind(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	updateBlog, err := b.BlogsService.UpdateBlog(c.Request().Context(), blogID, body.Content)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, updateBlog)
 }
 
 func (b *BlogsHandler) DeleteBlog(c echo.Context) error {
