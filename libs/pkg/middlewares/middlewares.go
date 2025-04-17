@@ -18,3 +18,11 @@ func NewAuthenticationMiddleware(jwtSecret string) echo.MiddlewareFunc {
 
 	return echojwt.WithConfig(authConfig)
 }
+
+func GetUserID(c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*types.JwtCustomClaims)
+	userID := claims.ID
+
+	return userID
+}

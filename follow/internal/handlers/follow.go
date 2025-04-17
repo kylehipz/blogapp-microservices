@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type FollowHandler struct {
-	FollowService services.FollowService
+	FollowService *services.FollowService
 }
 
 type FollowUserRequestBody struct {
@@ -20,9 +21,7 @@ type FollowUserRequestBody struct {
 
 func (f *FollowHandler) FollowUser(c echo.Context) error {
 	// parse user from jwt
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*types.JwtCustomClaims)
-	follower := claims.ID
+	follower := middlewares.GetUserID(c)
 
 	// parse request body
 	body := new(FollowUserRequestBody)

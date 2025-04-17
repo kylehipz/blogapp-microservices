@@ -9,7 +9,7 @@ import (
 )
 
 type UsersHandler struct {
-	UsersService services.UsersService
+	UsersService *services.UsersService
 }
 
 type RegisterUserRequestBody struct {

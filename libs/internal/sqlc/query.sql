@@ -25,3 +25,17 @@ INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING *;
 
 -- name: UnfollowUser :exec
 DELETE FROM follow WHERE follower = $1 and followee = $2;
+
+-- Blogs
+
+-- name: CreateBlog :one
+INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING *;
+
+-- name: FindBlog :one
+SELECT * FROM blogs WHERE id = $1 LIMIT 1;
+
+-- name: UpdateBlog :one
+UPDATE blogs SET content = $2 WHERE id = $1 RETURNING *;
+
+-- name: DeleteBlog :exec
+DELETE FROM blogs WHERE id = $1;

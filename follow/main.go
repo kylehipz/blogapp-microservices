@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	// connect to database
 	// load .env
 	environment := os.Getenv("ENVIRONMENT")
 	if environment == "" || environment == "development" {

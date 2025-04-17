@@ -17,7 +17,7 @@ import (
 func New(conn *pgx.Conn) []*api.EchoAPIRoute {
 	queries := db.New(conn)
 	usersService := services.UsersService{Queries: queries}
-	usersHandler := handlers.UsersHandler{UsersService: usersService}
+	usersHandler := handlers.UsersHandler{UsersService: &usersService}
 
 	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(os.Getenv("JWT_SECRET"))
 
