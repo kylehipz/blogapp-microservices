@@ -87,6 +87,23 @@ func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User
 	return i, err
 }
 
+const followUser = `-- name: FollowUser :one
+INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING follower, followee
+`
+
+type FollowUserParams struct {
+	Follower pgtype.UUID
+	Followee pgtype.UUID
+}
+
+// Follow
+func (q *Queries) FollowUser(ctx context.Context, arg FollowUserParams) (Follow, error) {
+	row := q.db.QueryRow(ctx, followUser, arg.Follower, arg.Followee)
+	var i Follow
+	err := row.Scan(&i.Follower, &i.Followee)
+	return i, err
+}
+
 const getHomeFeed = `-- name: GetHomeFeed :many
 
 SELECT b.id, b.author, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
@@ -123,4 +140,18 @@ func (q *Queries) GetHomeFeed(ctx context.Context, arg GetHomeFeedParams) ([]Blo
 		return nil, err
 	}
 	return items, nil
+}
+
+const unfollowUser = `-- name: UnfollowUser :exec
+DELETE FROM follow WHERE follower = $1 and followee = $2
+`
+
+type UnfollowUserParams struct {
+	Follower pgtype.UUID
+	Followee pgtype.UUID
+}
+
+func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) error {
+	_, err := q.db.Exec(ctx, unfollowUser, arg.Follower, arg.Followee)
+	return err
 }

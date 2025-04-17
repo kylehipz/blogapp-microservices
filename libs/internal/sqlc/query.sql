@@ -17,3 +17,11 @@ SELECT * FROM users WHERE email = $1 LIMIT 1;
 
 -- name: FindUserByUsername :one
 SELECT * FROM users WHERE username = $1 LIMIT 1;
+
+
+-- Follow
+-- name: FollowUser :one
+INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING *;
+
+-- name: UnfollowUser :exec
+DELETE FROM follow WHERE follower = $1 and followee = $2;
