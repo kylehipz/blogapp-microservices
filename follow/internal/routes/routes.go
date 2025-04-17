@@ -15,7 +15,7 @@ import (
 func New(conn *pgx.Conn) []*api.EchoAPIRoute {
 	queries := db.New(conn)
 	followService := services.FollowService{Queries: queries}
-	followHandler := handlers.FollowHandler{FollowService: followService}
+	followHandler := handlers.FollowHandler{FollowService: &followService}
 
 	routes := []*api.EchoAPIRoute{
 		{

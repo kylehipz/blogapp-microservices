@@ -11,7 +11,7 @@ import (
 )
 
 type FollowHandler struct {
-	FollowService services.FollowService
+	FollowService *services.FollowService
 }
 
 type FollowUserRequestBody struct {
