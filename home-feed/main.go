@@ -11,6 +11,7 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/loadenv"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/routes"
 )
@@ -22,10 +23,9 @@ func main() {
 		loadenv.Load()
 	}
 
-	// start database
 	ctx := context.Background()
 
-	// start database
+	// connect to database
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -34,6 +34,13 @@ func main() {
 
 	log.Println("Successfully connected to the database")
 
+	// connect to redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
 	apiServerPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	apiServer := api.NewEchoAPIServer(apiServerPort)
 
@@ -41,7 +48,7 @@ func main() {
 
 	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
 
-	homeFeedRoutes := routes.New(conn)
+	homeFeedRoutes := routes.New(conn, rdb)
 
 	apiServer.Run("/home-feed", homeFeedRoutes)
 }
