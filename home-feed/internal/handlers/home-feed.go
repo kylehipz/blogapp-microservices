@@ -18,7 +18,11 @@ type HomeFeedHandler struct {
 func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 	userID := middlewares.GetUserID(c)
 	createdAt := c.QueryParam("createdAt")
-	pageStr := c.QueryParam("page")
+
+	if createdAt == "" {
+		createdAt = "now"
+	}
+
 	limitStr := c.QueryParam("limit")
 
 	limit, err := strconv.Atoi(limitStr)
@@ -26,16 +30,10 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 		limit = 10
 	}
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
-		page = 1
-	}
-
 	homeFeed, err := h.HomeFeedService.GetHomeFeed(
 		c.Request().Context(),
 		userID,
 		createdAt,
-		int32(page),
 		int32(limit),
 	)
 	if err != nil {

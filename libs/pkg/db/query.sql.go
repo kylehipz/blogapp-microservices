@@ -156,7 +156,7 @@ func (q *Queries) FollowUser(ctx context.Context, arg FollowUserParams) (Follow,
 const getHomeFeed = `-- name: GetHomeFeed :many
 
 SELECT b.id, b.author, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
-WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at LIMIT $3
+WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at DESC LIMIT $3
 `
 
 type GetHomeFeedParams struct {

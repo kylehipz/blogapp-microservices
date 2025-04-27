@@ -20,7 +20,6 @@ func (h *HomeFeedService) GetHomeFeed(
 	ctx context.Context,
 	user string,
 	createdAt string,
-	page int32,
 	limit int32,
 ) ([]db.Blog, error) {
 	fmt.Println("user", user)
@@ -30,13 +29,19 @@ func (h *HomeFeedService) GetHomeFeed(
 	}
 
 	// convert timestamp to time.Time
-	t, err := time.Parse(time.RFC3339, createdAt)
-	if err != nil {
-		return nil, err
+	var t time.Time
+	if createdAt == "now" {
+		t = time.Now()
+	} else {
+		fmt.Println("time", createdAt)
+		t, err = time.Parse(time.RFC3339, createdAt)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// fetch from cache
-	cacheKey := h.generateHomeFeedCacheKey(user, page, limit)
+	cacheKey := h.generateHomeFeedCacheKey(user, createdAt, limit)
 	val, err := h.RedisClient.Get(ctx, cacheKey).Result()
 	if err != nil {
 		// fetch from database
@@ -72,6 +77,10 @@ func (h *HomeFeedService) GetHomeFeed(
 	return cachedHomeFeed, nil
 }
 
-func (h *HomeFeedService) generateHomeFeedCacheKey(user string, page int32, limit int32) string {
-	return fmt.Sprintf("%s:%d:%d", user, page, limit)
+func (h *HomeFeedService) generateHomeFeedCacheKey(
+	user string,
+	createdAt string,
+	limit int32,
+) string {
+	return fmt.Sprintf("%s:%s:%d", user, createdAt, limit)
 }
