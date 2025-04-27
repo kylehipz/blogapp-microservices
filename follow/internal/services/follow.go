@@ -21,7 +21,7 @@ func (f *FollowService) FollowUser(
 		return nil, err
 	}
 
-	followeeID, err := uuid.Parse(follower)
+	followeeID, err := uuid.Parse(followee)
 	if err != nil {
 		return nil, err
 	}

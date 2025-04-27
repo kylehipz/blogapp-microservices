@@ -8,30 +8,47 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
-	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/loadenv"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
+	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
+
+	"github.com/kylehipz/blogapp-microservices/home-feed/internal/routes"
 )
 
 func main() {
+	// load .env
 	environment := os.Getenv("ENVIRONMENT")
 	if environment == "" || environment == "development" {
 		loadenv.Load()
 	}
+
 	ctx := context.Background()
 
-	// start database
+	// connect to database
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close(ctx)
+
 	log.Println("Successfully connected to the database")
 
-	db.New(conn)
+	// connect to redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
 
 	apiServerPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	apiServer := api.NewEchoAPIServer(apiServerPort)
 
-	routes := []*api.EchoAPIRoute{}
-	apiServer.Run("/home-feed", routes)
+	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(os.Getenv("JWT_SECRET"))
+
+	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
+
+	homeFeedRoutes := routes.New(conn, rdb)
+
+	apiServer.Run("/home-feed", homeFeedRoutes)
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,6 +26,10 @@ func (f *FollowHandler) FollowUser(c echo.Context) error {
 
 	// parse request body
 	body := new(FollowUserRequestBody)
+
+	if err := c.Bind(body); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
 	createdFollow, err := f.FollowService.FollowUser(c.Request().Context(), follower, body.Followee)
 	if err != nil {
