@@ -111,9 +111,10 @@ func (p *PostgresClient) CreateUser(
 	}
 
 	createdUser := types.User{
-		ID:       resultUser.ID.String(),
-		Username: resultUser.Username,
-		Email:    resultUser.Email,
+		ID:        resultUser.ID.String(),
+		Username:  resultUser.Username,
+		Email:     resultUser.Email,
+		CreatedAt: resultUser.CreatedAt.String(),
 	}
 
 	return &createdUser, nil
