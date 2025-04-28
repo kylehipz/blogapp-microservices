@@ -14,17 +14,18 @@ import (
 
 const createBlog = `-- name: CreateBlog :one
 
-INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING id, author, title, content, created_at
+INSERT INTO blogs (author, title, content) VALUES ($1, $2, $3) RETURNING id, author, title, content, created_at
 `
 
 type CreateBlogParams struct {
 	Author  uuid.UUID
+	Title   string
 	Content string
 }
 
 // Blogs
 func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, error) {
-	row := q.db.QueryRow(ctx, createBlog, arg.Author, arg.Content)
+	row := q.db.QueryRow(ctx, createBlog, arg.Author, arg.Title, arg.Content)
 	var i Blog
 	err := row.Scan(
 		&i.ID,

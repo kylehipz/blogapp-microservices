@@ -77,6 +77,7 @@ func (p *PostgresClient) CreateBlog(
 
 	resultBlog, err := p.Queries.CreateBlog(ctx, sqlcgen.CreateBlogParams{
 		Author:  parsedAuthorId,
+		Title:   title,
 		Content: content,
 	})
 	if err != nil {
@@ -88,8 +89,9 @@ func (p *PostgresClient) CreateBlog(
 		Author: &types.User{
 			ID: authorId,
 		},
-		Title:   resultBlog.Title,
-		Content: resultBlog.Content,
+		Title:     resultBlog.Title,
+		Content:   resultBlog.Content,
+		CreatedAt: resultBlog.CreatedAt.String(),
 	}
 
 	return &createdBlog, err

@@ -29,7 +29,7 @@ DELETE FROM follow WHERE follower = $1 and followee = $2;
 -- Blogs
 
 -- name: CreateBlog :one
-INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING *;
+INSERT INTO blogs (author, title, content) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: FindBlog :one
 SELECT * FROM blogs WHERE id = $1 LIMIT 1;

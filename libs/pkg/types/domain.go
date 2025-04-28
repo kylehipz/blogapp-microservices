@@ -10,9 +10,9 @@ type Blog struct {
 
 type User struct {
 	ID        string `json:"id"`
-	Username  string `json:"Username"`
-	Email     string `json:"Email"`
-	Password  string `json:"Password"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 	CreatedAt string `json:"createdAt"`
 }
 

@@ -14,6 +14,7 @@ type BlogsHandler struct {
 }
 
 type CreateBlogRequestBody struct {
+	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
@@ -25,7 +26,12 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	createdBlog, err := b.BlogsService.CreateBlog(c.Request().Context(), author, body.Content)
+	createdBlog, err := b.BlogsService.CreateBlog(
+		c.Request().Context(),
+		author,
+		body.Title,
+		body.Content,
+	)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
