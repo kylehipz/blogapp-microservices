@@ -12,6 +12,7 @@ CREATE TABLE users (
 CREATE TABLE blogs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   author UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

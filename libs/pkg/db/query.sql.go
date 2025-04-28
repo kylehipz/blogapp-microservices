@@ -14,7 +14,7 @@ import (
 
 const createBlog = `-- name: CreateBlog :one
 
-INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING id, author, content, created_at
+INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING id, author, title, content, created_at
 `
 
 type CreateBlogParams struct {
@@ -29,6 +29,7 @@ func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, e
 	err := row.Scan(
 		&i.ID,
 		&i.Author,
+		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 	)
@@ -70,7 +71,7 @@ func (q *Queries) DeleteBlog(ctx context.Context, id uuid.UUID) error {
 }
 
 const findBlog = `-- name: FindBlog :one
-SELECT id, author, content, created_at FROM blogs WHERE id = $1 LIMIT 1
+SELECT id, author, title, content, created_at FROM blogs WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) FindBlog(ctx context.Context, id uuid.UUID) (Blog, error) {
@@ -79,6 +80,7 @@ func (q *Queries) FindBlog(ctx context.Context, id uuid.UUID) (Blog, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Author,
+		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 	)
@@ -155,7 +157,7 @@ func (q *Queries) FollowUser(ctx context.Context, arg FollowUserParams) (Follow,
 
 const getHomeFeed = `-- name: GetHomeFeed :many
 
-SELECT b.id, b.author, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
+SELECT b.id, b.author, b.title, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
 WHERE f.follower = $1 AND b.created_at < $2 ORDER BY created_at DESC LIMIT $3
 `
 
@@ -178,6 +180,7 @@ func (q *Queries) GetHomeFeed(ctx context.Context, arg GetHomeFeedParams) ([]Blo
 		if err := rows.Scan(
 			&i.ID,
 			&i.Author,
+			&i.Title,
 			&i.Content,
 			&i.CreatedAt,
 		); err != nil {
@@ -206,7 +209,7 @@ func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) erro
 }
 
 const updateBlog = `-- name: UpdateBlog :one
-UPDATE blogs SET content = $2 WHERE id = $1 RETURNING id, author, content, created_at
+UPDATE blogs SET content = $2 WHERE id = $1 RETURNING id, author, title, content, created_at
 `
 
 type UpdateBlogParams struct {
@@ -220,6 +223,7 @@ func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, e
 	err := row.Scan(
 		&i.ID,
 		&i.Author,
+		&i.Title,
 		&i.Content,
 		&i.CreatedAt,
 	)

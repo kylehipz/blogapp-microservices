@@ -13,6 +13,7 @@ import (
 type Blog struct {
 	ID        uuid.UUID
 	Author    uuid.UUID
+	Title     string
 	Content   string
 	CreatedAt time.Time
 }
