@@ -2,6 +2,9 @@ package db
 
 import (
 	"context"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
@@ -12,11 +15,45 @@ type PostgresClient struct {
 
 func (p *PostgresClient) GetHomeFeed(
 	ctx context.Context,
-	user string,
+	userId string,
 	createdAt string,
 	limit int32,
 ) ([]*types.Blog, error) {
-	return nil, nil
+	parsedUserId, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, err
+	}
+	var t time.Time
+	if createdAt == "now" {
+		t = time.Now()
+	} else {
+		t, err = time.Parse(time.RFC3339, createdAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	fetchedBlogs, err := p.Queries.GetHomeFeed(ctx, GetHomeFeedParams{
+		Follower:  parsedUserId,
+		CreatedAt: t,
+		Limit:     limit,
+	})
+
+	blogs := []*types.Blog{}
+
+	for _, blog := range fetchedBlogs {
+		blogs = append(blogs, &types.Blog{
+			ID: blog.ID.String(),
+			Author: &types.User{
+				ID: userId,
+			},
+			Title:     "",
+			Content:   blog.Content,
+			CreatedAt: blog.CreatedAt.String(),
+		})
+	}
+
+	return blogs, nil
 }
 
 func (p *PostgresClient) CreateBlog(

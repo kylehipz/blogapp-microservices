@@ -22,7 +22,6 @@ func (h *HomeFeedService) GetHomeFeed(
 	createdAt string,
 	limit int32,
 ) ([]db.Blog, error) {
-	fmt.Println("user", user)
 	userID, err := uuid.Parse(user)
 	if err != nil {
 		return nil, err
