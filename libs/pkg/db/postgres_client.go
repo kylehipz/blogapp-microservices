@@ -148,7 +148,20 @@ func (p *PostgresClient) FindUserByUsername(
 	ctx context.Context,
 	username string,
 ) (*types.User, error) {
-	return nil, nil
+	user, err := p.Queries.FindUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	foundUser := &types.User{
+		ID:        user.ID.String(),
+		Email:     user.Email,
+		Username:  user.Username,
+		Password:  user.Password,
+		CreatedAt: user.CreatedAt.String(),
+	}
+
+	return foundUser, nil
 }
 
 func (p *PostgresClient) FollowUser(
