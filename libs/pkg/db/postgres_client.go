@@ -6,8 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/kylehipz/blogapp-microservices/libs/internal/sqlcgen"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
@@ -101,7 +103,22 @@ func (p *PostgresClient) CreateUser(
 	email string,
 	password string,
 ) (*types.User, error) {
-	return nil, nil
+	resultUser, err := p.Queries.CreateUser(ctx, sqlcgen.CreateUserParams{
+		Username: username,
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	createdUser := types.User{
+		ID:       resultUser.ID.String(),
+		Username: resultUser.Username,
+		Email:    resultUser.Email,
+	}
+
+	return &createdUser, nil
 }
 
 func (p *PostgresClient) UpdateBlog(
