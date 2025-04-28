@@ -66,11 +66,33 @@ func (p *PostgresClient) GetHomeFeed(
 
 func (p *PostgresClient) CreateBlog(
 	ctx context.Context,
-	author string,
+	authorId string,
 	title string,
 	content string,
 ) (*types.Blog, error) {
-	return nil, nil
+	parsedAuthorId, err := uuid.Parse(authorId)
+	if err != nil {
+		return nil, err
+	}
+
+	resultBlog, err := p.Queries.CreateBlog(ctx, sqlcgen.CreateBlogParams{
+		Author:  parsedAuthorId,
+		Content: content,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	createdBlog := types.Blog{
+		ID: resultBlog.ID.String(),
+		Author: &types.User{
+			ID: authorId,
+		},
+		Title:   resultBlog.Title,
+		Content: resultBlog.Content,
+	}
+
+	return &createdBlog, err
 }
 
 func (p *PostgresClient) CreateUser(
