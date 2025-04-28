@@ -5,12 +5,20 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
+	"github.com/kylehipz/blogapp-microservices/libs/internal/sqlcgen"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type PostgresClient struct {
-	Queries *Queries
+	Queries *sqlcgen.Queries
+}
+
+func NewPostgresClient(conn *pgx.Conn) *PostgresClient {
+	queries := sqlcgen.New(conn)
+
+	return &PostgresClient{Queries: queries}
 }
 
 func (p *PostgresClient) GetHomeFeed(
@@ -33,7 +41,7 @@ func (p *PostgresClient) GetHomeFeed(
 		}
 	}
 
-	fetchedBlogs, err := p.Queries.GetHomeFeed(ctx, GetHomeFeedParams{
+	fetchedBlogs, err := p.Queries.GetHomeFeed(ctx, sqlcgen.GetHomeFeedParams{
 		Follower:  parsedUserId,
 		CreatedAt: t,
 		Limit:     limit,
