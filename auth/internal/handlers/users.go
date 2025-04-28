@@ -9,7 +9,7 @@ import (
 )
 
 type UsersHandler struct {
-	UsersService *services.UsersService
+	usersService *services.UsersService
 }
 
 type RegisterUserRequestBody struct {
@@ -23,6 +23,10 @@ type LoginUserRequestBody struct {
 	Password string
 }
 
+func NewUsersHandler(usersService *services.UsersService) *UsersHandler {
+	return &UsersHandler{usersService: usersService}
+}
+
 func (u *UsersHandler) RegisterUser(c echo.Context) error {
 	body := new(RegisterUserRequestBody)
 
@@ -30,7 +34,7 @@ func (u *UsersHandler) RegisterUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	createdUser, err := u.UsersService.CreateUser(
+	createdUser, err := u.usersService.CreateUser(
 		c.Request().Context(),
 		body.Username,
 		body.Email,
@@ -50,7 +54,7 @@ func (u *UsersHandler) LoginUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	accessToken, err := u.UsersService.Login(c.Request().Context(), body.Username, body.Password)
+	accessToken, err := u.usersService.Login(c.Request().Context(), body.Username, body.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
