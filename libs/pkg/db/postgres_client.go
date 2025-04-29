@@ -12,13 +12,13 @@ import (
 )
 
 type PostgresClient struct {
-	Queries *sqlcgen.Queries
+	queries *sqlcgen.Queries
 }
 
 func NewPostgresClient(conn *pgx.Conn) *PostgresClient {
 	queries := sqlcgen.New(conn)
 
-	return &PostgresClient{Queries: queries}
+	return &PostgresClient{queries: queries}
 }
 
 func (p *PostgresClient) GetHomeFeed(
@@ -41,7 +41,7 @@ func (p *PostgresClient) GetHomeFeed(
 		}
 	}
 
-	fetchedBlogs, err := p.Queries.GetHomeFeed(ctx, sqlcgen.GetHomeFeedParams{
+	fetchedBlogs, err := p.queries.GetHomeFeed(ctx, sqlcgen.GetHomeFeedParams{
 		Follower:  parsedUserId,
 		CreatedAt: t,
 		Limit:     limit,
@@ -75,7 +75,7 @@ func (p *PostgresClient) CreateBlog(
 		return nil, err
 	}
 
-	resultBlog, err := p.Queries.CreateBlog(ctx, sqlcgen.CreateBlogParams{
+	resultBlog, err := p.queries.CreateBlog(ctx, sqlcgen.CreateBlogParams{
 		Author:  parsedAuthorId,
 		Title:   title,
 		Content: content,
@@ -103,7 +103,7 @@ func (p *PostgresClient) CreateUser(
 	email string,
 	password string,
 ) (*types.User, error) {
-	resultUser, err := p.Queries.CreateUser(ctx, sqlcgen.CreateUserParams{
+	resultUser, err := p.queries.CreateUser(ctx, sqlcgen.CreateUserParams{
 		Username: username,
 		Email:    email,
 		Password: password,
@@ -135,7 +135,27 @@ func (p *PostgresClient) DeleteBlog(ctx context.Context, blogId string) error {
 }
 
 func (p *PostgresClient) FindBlog(ctx context.Context, blogId string) (*types.Blog, error) {
-	return nil, nil
+	parsedBlogId, err := uuid.Parse(blogId)
+	if err != nil {
+		return nil, err
+	}
+
+	resultBlog, err := p.queries.FindBlog(ctx, parsedBlogId)
+	if err != nil {
+		return nil, err
+	}
+
+	foundBlog := &types.Blog{
+		ID: resultBlog.ID.String(),
+		Author: &types.User{
+			ID: resultBlog.Author.String(),
+		},
+		Title:     resultBlog.Title,
+		Content:   resultBlog.Content,
+		CreatedAt: resultBlog.CreatedAt.String(),
+	}
+
+	return foundBlog, nil
 }
 
 func (p *PostgresClient) FindUser(ctx context.Context, userId string) (*types.User, error) {
@@ -150,7 +170,7 @@ func (p *PostgresClient) FindUserByUsername(
 	ctx context.Context,
 	username string,
 ) (*types.User, error) {
-	user, err := p.Queries.FindUserByUsername(ctx, username)
+	user, err := p.queries.FindUserByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
