@@ -12,7 +12,11 @@ import (
 )
 
 type HomeFeedHandler struct {
-	HomeFeedService *services.HomeFeedService
+	homeFeedService *services.HomeFeedService
+}
+
+func NewHomeFeedHandler(homeFeedService *services.HomeFeedService) *HomeFeedHandler {
+	return &HomeFeedHandler{homeFeedService: homeFeedService}
 }
 
 func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
@@ -30,7 +34,7 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 		limit = 10
 	}
 
-	homeFeed, err := h.HomeFeedService.GetHomeFeed(
+	homeFeed, err := h.homeFeedService.GetHomeFeed(
 		c.Request().Context(),
 		userID,
 		createdAt,

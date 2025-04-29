@@ -14,6 +14,10 @@ type HomeFeedService struct {
 	dbClient    db.DatabaseClient
 }
 
+func NewHomeFeedService(dbClient db.DatabaseClient) *HomeFeedService {
+	return &HomeFeedService{dbClient: dbClient}
+}
+
 func (h *HomeFeedService) GetHomeFeed(
 	ctx context.Context,
 	userId string,

@@ -14,12 +14,10 @@ import (
 )
 
 func New(conn *pgx.Conn, rdb *redis.Client) []*api.EchoAPIRoute {
-	queries := db.New(conn)
-	homeFeedService := services.HomeFeedService{
-		Queries:     queries,
-		RedisClient: rdb,
-	}
-	homeFeedHandler := handlers.HomeFeedHandler{HomeFeedService: &homeFeedService}
+	postgresClient := db.NewPostgresClient(conn)
+	homeFeedService := services.NewHomeFeedService(postgresClient)
+
+	homeFeedHandler := handlers.NewHomeFeedHandler(homeFeedService)
 
 	routes := []*api.EchoAPIRoute{
 		{
