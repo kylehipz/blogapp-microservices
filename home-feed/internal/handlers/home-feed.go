@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
@@ -41,7 +41,7 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 	}
 
 	if homeFeed == nil {
-		homeFeed = []db.Blog{}
+		homeFeed = []*types.Blog{}
 	}
 
 	return c.JSON(http.StatusOK, homeFeed)
