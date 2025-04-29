@@ -257,5 +257,23 @@ func (p *PostgresClient) UnfollowUser(
 	followerId string,
 	followeeId string,
 ) error {
+	parsedFollowerId, err := uuid.Parse(followerId)
+	if err != nil {
+		return err
+	}
+
+	parsedFolloweeId, err := uuid.Parse(followeeId)
+	if err != nil {
+		return err
+	}
+
+	err = p.queries.UnfollowUser(ctx, sqlcgen.UnfollowUserParams{
+		Follower: parsedFollowerId,
+		Followee: parsedFolloweeId,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
