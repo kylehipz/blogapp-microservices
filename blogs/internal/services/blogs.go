@@ -3,13 +3,11 @@ package services
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type BlogsService struct {
-	Queries  *db.Queries
 	dbClient db.DatabaseClient
 }
 
@@ -54,13 +52,8 @@ func (b *BlogsService) UpdateBlog(
 	return updatedBlog, nil
 }
 
-func (b *BlogsService) DeleteBlog(ctx context.Context, blog string) error {
-	blogID, err := uuid.Parse(blog)
-	if err != nil {
-		return err
-	}
-
-	err = b.Queries.DeleteBlog(ctx, blogID)
+func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string) error {
+	err := b.dbClient.DeleteBlog(ctx, blogId)
 	if err != nil {
 		return err
 	}

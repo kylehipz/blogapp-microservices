@@ -156,6 +156,16 @@ func (p *PostgresClient) UpdateBlog(
 }
 
 func (p *PostgresClient) DeleteBlog(ctx context.Context, blogId string) error {
+	parsedBlogId, err := uuid.Parse(blogId)
+	if err != nil {
+		return err
+	}
+
+	err = p.queries.DeleteBlog(ctx, parsedBlogId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
