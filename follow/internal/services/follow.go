@@ -3,60 +3,37 @@ package services
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type FollowService struct {
-	Queries *db.Queries
+	dbClient db.DatabaseClient
+}
+
+func NewFollowService(dbClient db.DatabaseClient) *FollowService {
+	return &FollowService{dbClient: dbClient}
 }
 
 func (f *FollowService) FollowUser(
 	ctx context.Context,
-	follower string,
-	followee string,
-) (*db.Follow, error) {
-	followerID, err := uuid.Parse(follower)
+	followerId string,
+	followeeId string,
+) (*types.Follow, error) {
+	follow, err := f.dbClient.CreateFollow(ctx, followerId, followeeId)
 	if err != nil {
 		return nil, err
 	}
 
-	followeeID, err := uuid.Parse(followee)
-	if err != nil {
-		return nil, err
-	}
-
-	follow, err := f.Queries.FollowUser(ctx, db.FollowUserParams{
-		Follower: followerID,
-		Followee: followeeID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &follow, nil
+	return follow, nil
 }
 
 func (f *FollowService) UnfollowUser(
 	ctx context.Context,
-	follower string,
-	followee string,
+	followerId string,
+	followeeId string,
 ) error {
-	followerID, err := uuid.Parse(follower)
-	if err != nil {
-		return err
-	}
-
-	followeeID, err := uuid.Parse(follower)
-	if err != nil {
-		return err
-	}
-
-	err = f.Queries.UnfollowUser(ctx, db.UnfollowUserParams{
-		Follower: followerID,
-		Followee: followeeID,
-	})
-	if err != nil {
+	if err := f.dbClient.DeleteFollow(ctx, followerId, followeeId); err != nil {
 		return err
 	}
 

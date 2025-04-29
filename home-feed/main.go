@@ -25,7 +25,7 @@ func main() {
 
 	ctx := context.Background()
 
-	// connect to database
+	// connect to postgres database
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -35,11 +35,7 @@ func main() {
 	log.Println("Successfully connected to the database")
 
 	// connect to redis
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	rdb := redis.NewClient(&redis.Options{Addr: os.Getenv("REDIS_URL")})
 
 	apiServerPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	apiServer := api.NewEchoAPIServer(apiServerPort)

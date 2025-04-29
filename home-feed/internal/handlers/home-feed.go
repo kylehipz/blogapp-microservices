@@ -4,15 +4,19 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
 )
 
 type HomeFeedHandler struct {
-	HomeFeedService *services.HomeFeedService
+	homeFeedService *services.HomeFeedService
+}
+
+func NewHomeFeedHandler(homeFeedService *services.HomeFeedService) *HomeFeedHandler {
+	return &HomeFeedHandler{homeFeedService: homeFeedService}
 }
 
 func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
@@ -30,7 +34,7 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 		limit = 10
 	}
 
-	homeFeed, err := h.HomeFeedService.GetHomeFeed(
+	homeFeed, err := h.homeFeedService.GetHomeFeed(
 		c.Request().Context(),
 		userID,
 		createdAt,
@@ -41,7 +45,7 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 	}
 
 	if homeFeed == nil {
-		homeFeed = []db.Blog{}
+		homeFeed = []*types.Blog{}
 	}
 
 	return c.JSON(http.StatusOK, homeFeed)

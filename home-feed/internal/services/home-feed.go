@@ -2,79 +2,50 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/cache"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
-	"github.com/redis/go-redis/v9"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type HomeFeedService struct {
-	Queries     *db.Queries
-	RedisClient *redis.Client
+	cacheClient cache.CacheClient
+	dbClient    db.DatabaseClient
+}
+
+func NewHomeFeedService(
+	dbClient db.DatabaseClient,
+	cacheClient cache.CacheClient,
+) *HomeFeedService {
+	return &HomeFeedService{dbClient: dbClient, cacheClient: cacheClient}
 }
 
 func (h *HomeFeedService) GetHomeFeed(
 	ctx context.Context,
-	user string,
+	userId string,
 	createdAt string,
 	limit int32,
-) ([]db.Blog, error) {
-	fmt.Println("user", user)
-	userID, err := uuid.Parse(user)
-	if err != nil {
-		return nil, err
-	}
+) ([]*types.Blog, error) {
+	cacheKey := h.generateHomeFeedCacheKey(userId, createdAt, limit)
+	cachedResult, err := h.cacheClient.Get(ctx, cacheKey)
+	if err == nil {
+		cachedBlogs := cachedResult.([]*types.Blog)
 
-	// convert timestamp to time.Time
-	var t time.Time
-	if createdAt == "now" {
-		t = time.Now()
+		return cachedBlogs, nil
 	} else {
-		fmt.Println("time", createdAt)
-		t, err = time.Parse(time.RFC3339, createdAt)
+		dbBlogs, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
 		if err != nil {
 			return nil, err
 		}
+
+		err = h.cacheClient.Set(ctx, cacheKey, dbBlogs)
+		if err != nil {
+			return nil, err
+		}
+
+		return dbBlogs, nil
 	}
-
-	// fetch from cache
-	cacheKey := h.generateHomeFeedCacheKey(user, createdAt, limit)
-	val, err := h.RedisClient.Get(ctx, cacheKey).Result()
-	if err != nil {
-		// fetch from database
-		blogs, err := h.Queries.GetHomeFeed(ctx, db.GetHomeFeedParams{
-			Follower:  userID,
-			CreatedAt: t,
-			Limit:     limit,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		blogsMarshaled, err := json.Marshal(&blogs)
-		if err != nil {
-			return nil, err
-		}
-
-		err = h.RedisClient.Set(ctx, cacheKey, blogsMarshaled, 0).Err()
-		if err != nil {
-			return nil, err
-		}
-
-		return blogs, nil
-	}
-
-	var cachedHomeFeed []db.Blog
-
-	err = json.Unmarshal([]byte(val), &cachedHomeFeed)
-	if err != nil {
-		return nil, err
-	}
-
-	return cachedHomeFeed, nil
 }
 
 func (h *HomeFeedService) generateHomeFeedCacheKey(

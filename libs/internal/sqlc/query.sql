@@ -20,22 +20,22 @@ SELECT * FROM users WHERE username = $1 LIMIT 1;
 
 
 -- Follow
--- name: FollowUser :one
+-- name: CreateFollow :one
 INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING *;
 
--- name: UnfollowUser :exec
+-- name: DeleteFollow :exec
 DELETE FROM follow WHERE follower = $1 and followee = $2;
 
 -- Blogs
 
 -- name: CreateBlog :one
-INSERT INTO blogs (author, content) VALUES ($1, $2) RETURNING *;
+INSERT INTO blogs (author, title, content) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: FindBlog :one
 SELECT * FROM blogs WHERE id = $1 LIMIT 1;
 
 -- name: UpdateBlog :one
-UPDATE blogs SET content = $2 WHERE id = $1 RETURNING *;
+UPDATE blogs SET title = $2, content = $3 WHERE id = $1 RETURNING *;
 
 -- name: DeleteBlog :exec
 DELETE FROM blogs WHERE id = $1;

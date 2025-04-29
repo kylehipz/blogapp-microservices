@@ -17,7 +17,11 @@ import (
 var InvalidCredentialsError = errors.New("Invalid Credentials")
 
 type UsersService struct {
-	Queries *db.Queries
+	dbClient db.DatabaseClient
+}
+
+func NewUsersService(dbClient db.DatabaseClient) *UsersService {
+	return &UsersService{dbClient: dbClient}
 }
 
 func (u *UsersService) CreateUser(
@@ -25,23 +29,19 @@ func (u *UsersService) CreateUser(
 	username string,
 	email string,
 	password string,
-) (*db.User, error) {
+) (*types.User, error) {
 	hashBytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return nil, err
 	}
 
-	createdUser, err := u.Queries.CreateUser(ctx, db.CreateUserParams{
-		Username: username,
-		Email:    email,
-		Password: string(hashBytes),
-	})
+	createdUser, err := u.dbClient.CreateUser(ctx, username, email, string(hashBytes))
 	if err != nil {
 		fmt.Println(strings.Contains(err.Error(), "duplicate"))
 		return nil, err
 	}
 
-	return &createdUser, nil
+	return createdUser, nil
 }
 
 func (u *UsersService) Login(
@@ -50,7 +50,7 @@ func (u *UsersService) Login(
 	password string,
 ) (string, error) {
 	// check if user exists
-	user, err := u.Queries.FindUserByUsername(ctx, username)
+	user, err := u.dbClient.FindUserByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +62,7 @@ func (u *UsersService) Login(
 
 	// generate jwt
 	claims := &types.JwtCustomClaims{
-		ID:       user.ID.String(),
+		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
