@@ -13,9 +13,9 @@ import (
 )
 
 func New(conn *pgx.Conn) []*api.EchoAPIRoute {
-	queries := db.New(conn)
-	followService := services.FollowService{Queries: queries}
-	followHandler := handlers.FollowHandler{FollowService: &followService}
+	postgresClient := db.NewPostgresClient(conn)
+	followService := services.NewFollowService(postgresClient)
+	followHandler := handlers.NewFollowHandler(followService)
 
 	routes := []*api.EchoAPIRoute{
 		{

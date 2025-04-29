@@ -8,8 +8,11 @@ import (
 )
 
 type FollowService struct {
-	Queries  *db.Queries
 	dbClient db.DatabaseClient
+}
+
+func NewFollowService(dbClient db.DatabaseClient) *FollowService {
+	return &FollowService{dbClient: dbClient}
 }
 
 func (f *FollowService) FollowUser(
