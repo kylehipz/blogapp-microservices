@@ -223,16 +223,39 @@ func (p *PostgresClient) FindUserByUsername(
 
 func (p *PostgresClient) FollowUser(
 	ctx context.Context,
-	follower string,
-	followee string,
-) error {
-	return nil
+	followerId string,
+	followeeId string,
+) (*types.Follow, error) {
+	parsedFollowerId, err := uuid.Parse(followerId)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedFolloweeId, err := uuid.Parse(followeeId)
+	if err != nil {
+		return nil, err
+	}
+
+	followResult, err := p.queries.FollowUser(ctx, sqlcgen.FollowUserParams{
+		Follower: parsedFollowerId,
+		Followee: parsedFolloweeId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	createdFollow := &types.Follow{
+		Follower: followResult.Follower.String(),
+		Followee: followResult.Followee.String(),
+	}
+
+	return createdFollow, nil
 }
 
 func (p *PostgresClient) UnfollowUser(
 	ctx context.Context,
-	follower string,
-	followee string,
+	followerId string,
+	followeeId string,
 ) error {
 	return nil
 }

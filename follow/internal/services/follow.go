@@ -5,36 +5,25 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type FollowService struct {
-	Queries *db.Queries
+	Queries  *db.Queries
+	dbClient db.DatabaseClient
 }
 
 func (f *FollowService) FollowUser(
 	ctx context.Context,
-	follower string,
-	followee string,
-) (*db.Follow, error) {
-	followerID, err := uuid.Parse(follower)
+	followerId string,
+	followeeId string,
+) (*types.Follow, error) {
+	follow, err := f.dbClient.FollowUser(ctx, followerId, followeeId)
 	if err != nil {
 		return nil, err
 	}
 
-	followeeID, err := uuid.Parse(followee)
-	if err != nil {
-		return nil, err
-	}
-
-	follow, err := f.Queries.FollowUser(ctx, db.FollowUserParams{
-		Follower: followerID,
-		Followee: followeeID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &follow, nil
+	return follow, nil
 }
 
 func (f *FollowService) UnfollowUser(

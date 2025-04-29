@@ -36,6 +36,6 @@ type DatabaseClient interface {
 	FindUser(ctx context.Context, userId string) (*types.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*types.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*types.User, error)
-	FollowUser(ctx context.Context, follower string, followee string) error
+	FollowUser(ctx context.Context, follower string, followee string) (*types.Follow, error)
 	UnfollowUser(ctx context.Context, follower string, followee string) error
 }
