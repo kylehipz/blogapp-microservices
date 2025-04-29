@@ -10,12 +10,16 @@ import (
 )
 
 type BlogsHandler struct {
-	BlogsService *services.BlogsService
+	blogsService *services.BlogsService
 }
 
 type CreateBlogRequestBody struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
+}
+
+func NewBlogsHandler(blogsService *services.BlogsService) *BlogsHandler {
+	return &BlogsHandler{blogsService: blogsService}
 }
 
 func (b *BlogsHandler) CreateBlog(c echo.Context) error {
@@ -26,7 +30,7 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	createdBlog, err := b.BlogsService.CreateBlog(
+	createdBlog, err := b.blogsService.CreateBlog(
 		c.Request().Context(),
 		author,
 		body.Title,
@@ -42,7 +46,7 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 func (b *BlogsHandler) GetBlog(c echo.Context) error {
 	blogID := c.Param("id")
 
-	blog, err := b.BlogsService.GetBlog(c.Request().Context(), blogID)
+	blog, err := b.blogsService.GetBlog(c.Request().Context(), blogID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
@@ -59,7 +63,7 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	updateBlog, err := b.BlogsService.UpdateBlog(
+	updateBlog, err := b.blogsService.UpdateBlog(
 		c.Request().Context(),
 		blogId,
 		body.Title,
@@ -75,7 +79,7 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 func (b *BlogsHandler) DeleteBlog(c echo.Context) error {
 	blogID := c.Param("id")
 
-	err := b.BlogsService.DeleteBlog(c.Request().Context(), blogID)
+	err := b.blogsService.DeleteBlog(c.Request().Context(), blogID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}

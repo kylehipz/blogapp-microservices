@@ -15,7 +15,7 @@ import (
 func New(conn *pgx.Conn) []*api.EchoAPIRoute {
 	postgresClient := db.NewPostgresClient(conn)
 	blogsService := services.NewBlogsService(postgresClient)
-	blogsHandler := handlers.BlogsHandler{BlogsService: blogsService}
+	blogsHandler := handlers.NewBlogsHandler(blogsService)
 
 	routes := []*api.EchoAPIRoute{
 		{
