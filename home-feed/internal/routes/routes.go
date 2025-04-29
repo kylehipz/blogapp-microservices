@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/cache"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -15,7 +16,8 @@ import (
 
 func New(conn *pgx.Conn, rdb *redis.Client) []*api.EchoAPIRoute {
 	postgresClient := db.NewPostgresClient(conn)
-	homeFeedService := services.NewHomeFeedService(postgresClient)
+	redisClient := cache.NewRedisClient(rdb)
+	homeFeedService := services.NewHomeFeedService(postgresClient, redisClient)
 
 	homeFeedHandler := handlers.NewHomeFeedHandler(homeFeedService)
 

@@ -4,18 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/cache"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
-	"github.com/redis/go-redis/v9"
 )
 
 type HomeFeedService struct {
-	redisClient *redis.Client
+	cacheClient cache.CacheClient
 	dbClient    db.DatabaseClient
 }
 
-func NewHomeFeedService(dbClient db.DatabaseClient) *HomeFeedService {
-	return &HomeFeedService{dbClient: dbClient}
+func NewHomeFeedService(
+	dbClient db.DatabaseClient,
+	cacheClient cache.CacheClient,
+) *HomeFeedService {
+	return &HomeFeedService{dbClient: dbClient, cacheClient: cacheClient}
 }
 
 func (h *HomeFeedService) GetHomeFeed(
@@ -24,12 +27,25 @@ func (h *HomeFeedService) GetHomeFeed(
 	createdAt string,
 	limit int32,
 ) ([]*types.Blog, error) {
-	blogs, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
-	if err != nil {
-		return nil, err
-	}
+	cacheKey := h.generateHomeFeedCacheKey(userId, createdAt, limit)
+	cachedResult, err := h.cacheClient.Get(ctx, cacheKey)
+	if err == nil {
+		cachedBlogs := cachedResult.([]*types.Blog)
 
-	return blogs, nil
+		return cachedBlogs, nil
+	} else {
+		dbBlogs, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
+		if err != nil {
+			return nil, err
+		}
+
+		err = h.cacheClient.Set(ctx, cacheKey, dbBlogs)
+		if err != nil {
+			return nil, err
+		}
+
+		return dbBlogs, nil
+	}
 }
 
 func (h *HomeFeedService) generateHomeFeedCacheKey(
