@@ -51,7 +51,7 @@ func (b *BlogsHandler) GetBlog(c echo.Context) error {
 }
 
 func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
-	blogID := c.Param("id")
+	blogId := c.Param("id")
 
 	body := new(CreateBlogRequestBody)
 
@@ -59,7 +59,12 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	updateBlog, err := b.BlogsService.UpdateBlog(c.Request().Context(), blogID, body.Content)
+	updateBlog, err := b.BlogsService.UpdateBlog(
+		c.Request().Context(),
+		blogId,
+		body.Title,
+		body.Content,
+	)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

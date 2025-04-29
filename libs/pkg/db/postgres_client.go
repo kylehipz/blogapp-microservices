@@ -124,10 +124,35 @@ func (p *PostgresClient) CreateUser(
 
 func (p *PostgresClient) UpdateBlog(
 	ctx context.Context,
+	blogId string,
 	title string,
 	content string,
 ) (*types.Blog, error) {
-	return nil, nil
+	parsedBlogId, err := uuid.Parse(blogId)
+	if err != nil {
+		return nil, err
+	}
+
+	blogResult, err := p.queries.UpdateBlog(ctx, sqlcgen.UpdateBlogParams{
+		ID:      parsedBlogId,
+		Title:   title,
+		Content: content,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedBlog := &types.Blog{
+		ID: blogResult.ID.String(),
+		Author: &types.User{
+			ID: blogResult.Author.String(),
+		},
+		Title:     blogResult.Title,
+		Content:   blogResult.Content,
+		CreatedAt: blogResult.CreatedAt.String(),
+	}
+
+	return updatedBlog, err
 }
 
 func (p *PostgresClient) DeleteBlog(ctx context.Context, blogId string) error {

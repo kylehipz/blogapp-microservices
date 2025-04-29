@@ -27,6 +27,7 @@ type DatabaseClient interface {
 	) (*types.User, error)
 	UpdateBlog(
 		ctx context.Context,
+		blogId string,
 		title string,
 		content string,
 	) (*types.Blog, error)

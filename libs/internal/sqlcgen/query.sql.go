@@ -210,16 +210,17 @@ func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) erro
 }
 
 const updateBlog = `-- name: UpdateBlog :one
-UPDATE blogs SET content = $2 WHERE id = $1 RETURNING id, author, title, content, created_at
+UPDATE blogs SET title = $2, content = $3 WHERE id = $1 RETURNING id, author, title, content, created_at
 `
 
 type UpdateBlogParams struct {
 	ID      uuid.UUID
+	Title   string
 	Content string
 }
 
 func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, error) {
-	row := q.db.QueryRow(ctx, updateBlog, arg.ID, arg.Content)
+	row := q.db.QueryRow(ctx, updateBlog, arg.ID, arg.Title, arg.Content)
 	var i Blog
 	err := row.Scan(
 		&i.ID,

@@ -35,7 +35,7 @@ INSERT INTO blogs (author, title, content) VALUES ($1, $2, $3) RETURNING *;
 SELECT * FROM blogs WHERE id = $1 LIMIT 1;
 
 -- name: UpdateBlog :one
-UPDATE blogs SET content = $2 WHERE id = $1 RETURNING *;
+UPDATE blogs SET title = $2, content = $3 WHERE id = $1 RETURNING *;
 
 -- name: DeleteBlog :exec
 DELETE FROM blogs WHERE id = $1;
