@@ -221,7 +221,7 @@ func (p *PostgresClient) FindUserByUsername(
 	return foundUser, nil
 }
 
-func (p *PostgresClient) FollowUser(
+func (p *PostgresClient) CreateFollow(
 	ctx context.Context,
 	followerId string,
 	followeeId string,
@@ -236,7 +236,7 @@ func (p *PostgresClient) FollowUser(
 		return nil, err
 	}
 
-	followResult, err := p.queries.FollowUser(ctx, sqlcgen.FollowUserParams{
+	followResult, err := p.queries.CreateFollow(ctx, sqlcgen.CreateFollowParams{
 		Follower: parsedFollowerId,
 		Followee: parsedFolloweeId,
 	})
@@ -252,7 +252,7 @@ func (p *PostgresClient) FollowUser(
 	return createdFollow, nil
 }
 
-func (p *PostgresClient) UnfollowUser(
+func (p *PostgresClient) DeleteFollow(
 	ctx context.Context,
 	followerId string,
 	followeeId string,
@@ -267,7 +267,7 @@ func (p *PostgresClient) UnfollowUser(
 		return err
 	}
 
-	err = p.queries.UnfollowUser(ctx, sqlcgen.UnfollowUserParams{
+	err = p.queries.DeleteFollow(ctx, sqlcgen.DeleteFollowParams{
 		Follower: parsedFollowerId,
 		Followee: parsedFolloweeId,
 	})

@@ -17,7 +17,7 @@ func (f *FollowService) FollowUser(
 	followerId string,
 	followeeId string,
 ) (*types.Follow, error) {
-	follow, err := f.dbClient.FollowUser(ctx, followerId, followeeId)
+	follow, err := f.dbClient.CreateFollow(ctx, followerId, followeeId)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (f *FollowService) UnfollowUser(
 	followerId string,
 	followeeId string,
 ) error {
-	if err := f.dbClient.UnfollowUser(ctx, followerId, followeeId); err != nil {
+	if err := f.dbClient.DeleteFollow(ctx, followerId, followeeId); err != nil {
 		return err
 	}
 

@@ -20,10 +20,10 @@ SELECT * FROM users WHERE username = $1 LIMIT 1;
 
 
 -- Follow
--- name: FollowUser :one
+-- name: CreateFollow :one
 INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING *;
 
--- name: UnfollowUser :exec
+-- name: DeleteFollow :exec
 DELETE FROM follow WHERE follower = $1 and followee = $2;
 
 -- Blogs

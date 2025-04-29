@@ -37,6 +37,23 @@ func (q *Queries) CreateBlog(ctx context.Context, arg CreateBlogParams) (Blog, e
 	return i, err
 }
 
+const createFollow = `-- name: CreateFollow :one
+INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING follower, followee
+`
+
+type CreateFollowParams struct {
+	Follower uuid.UUID
+	Followee uuid.UUID
+}
+
+// Follow
+func (q *Queries) CreateFollow(ctx context.Context, arg CreateFollowParams) (Follow, error) {
+	row := q.db.QueryRow(ctx, createFollow, arg.Follower, arg.Followee)
+	var i Follow
+	err := row.Scan(&i.Follower, &i.Followee)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, password, created_at
@@ -68,6 +85,20 @@ DELETE FROM blogs WHERE id = $1
 
 func (q *Queries) DeleteBlog(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteBlog, id)
+	return err
+}
+
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM follow WHERE follower = $1 and followee = $2
+`
+
+type DeleteFollowParams struct {
+	Follower uuid.UUID
+	Followee uuid.UUID
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.Follower, arg.Followee)
 	return err
 }
 
@@ -139,23 +170,6 @@ func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User
 	return i, err
 }
 
-const followUser = `-- name: FollowUser :one
-INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING follower, followee
-`
-
-type FollowUserParams struct {
-	Follower uuid.UUID
-	Followee uuid.UUID
-}
-
-// Follow
-func (q *Queries) FollowUser(ctx context.Context, arg FollowUserParams) (Follow, error) {
-	row := q.db.QueryRow(ctx, followUser, arg.Follower, arg.Followee)
-	var i Follow
-	err := row.Scan(&i.Follower, &i.Followee)
-	return i, err
-}
-
 const getHomeFeed = `-- name: GetHomeFeed :many
 
 SELECT b.id, b.author, b.title, b.content, b.created_at FROM blogs b JOIN follow f ON b.author = f.followee 
@@ -193,20 +207,6 @@ func (q *Queries) GetHomeFeed(ctx context.Context, arg GetHomeFeedParams) ([]Blo
 		return nil, err
 	}
 	return items, nil
-}
-
-const unfollowUser = `-- name: UnfollowUser :exec
-DELETE FROM follow WHERE follower = $1 and followee = $2
-`
-
-type UnfollowUserParams struct {
-	Follower uuid.UUID
-	Followee uuid.UUID
-}
-
-func (q *Queries) UnfollowUser(ctx context.Context, arg UnfollowUserParams) error {
-	_, err := q.db.Exec(ctx, unfollowUser, arg.Follower, arg.Followee)
-	return err
 }
 
 const updateBlog = `-- name: UpdateBlog :one
