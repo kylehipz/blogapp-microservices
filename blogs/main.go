@@ -10,7 +10,9 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/loadenv"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/labstack/echo/v4"
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/kylehipz/blogapp-microservices/blogs/internal/routes"
 )
@@ -41,7 +43,21 @@ func main() {
 
 	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
 
-	blogRoutes := routes.New(conn)
+	rabbitConn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		panic(err)
+	}
+
+	ch, err := rabbitConn.Channel()
+	if err != nil {
+		panic(err)
+	}
+
+	rabbitMQClient := pubsub.NewRabbitMQClient(rabbitConn, ch, "blogapp", "blogs", "blogs")
+
+	defer rabbitMQClient.CleanUp()
+
+	blogRoutes := routes.New(conn, rabbitMQClient)
 
 	apiServer.Run("/blogs", blogRoutes)
 }
