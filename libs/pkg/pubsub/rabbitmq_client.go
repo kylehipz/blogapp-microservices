@@ -58,7 +58,7 @@ func (r *RabbitMQClient) Publish(ctx context.Context, event string, payload any)
 	return nil
 }
 
-func (r *RabbitMQClient) Subscribe(events []string) (<-chan amqp.Delivery, error) {
+func (r *RabbitMQClient) Subscribe(events []string) (<-chan *Message, error) {
 	q, err := r.ch.QueueDeclare(r.queue, false, false, false, false, nil)
 	if err != nil {
 		return nil, err
@@ -73,5 +73,23 @@ func (r *RabbitMQClient) Subscribe(events []string) (<-chan amqp.Delivery, error
 
 	msgs, err := r.ch.Consume(q.Name, r.service, true, false, false, false, nil)
 
-	return msgs, err
+	transformed := make(chan *Message)
+
+	go func() {
+		for msg := range msgs {
+			var payload any
+
+			if err := json.Unmarshal(msg.Body, &payload); err != nil {
+				continue
+			}
+
+			transformed <- &Message{
+				Event:   msg.RoutingKey,
+				Payload: payload,
+			}
+		}
+		close(transformed)
+	}()
+
+	return transformed, err
 }

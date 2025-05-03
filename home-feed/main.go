@@ -64,8 +64,8 @@ func main() {
 
 	go func() {
 		for msg := range msgs {
-			fmt.Printf("event: %s\n", msg.RoutingKey)
-			fmt.Printf("msg: %+v\n", msg.Body)
+			fmt.Printf("event: %s\n", msg.Event)
+			fmt.Printf("msg: %+v\n", msg.Payload)
 		}
 	}()
 
