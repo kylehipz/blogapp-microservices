@@ -4,15 +4,23 @@ import (
 	"context"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type BlogsService struct {
-	dbClient db.DatabaseClient
+	dbClient       db.DatabaseClient
+	rabbitMQClient *pubsub.RabbitMQClient
 }
 
-func NewBlogsService(dbClient db.DatabaseClient) *BlogsService {
-	return &BlogsService{dbClient: dbClient}
+func NewBlogsService(
+	dbClient db.DatabaseClient,
+	rabbitMQClient *pubsub.RabbitMQClient,
+) *BlogsService {
+	return &BlogsService{
+		dbClient:       dbClient,
+		rabbitMQClient: rabbitMQClient,
+	}
 }
 
 func (b *BlogsService) CreateBlog(
@@ -22,6 +30,11 @@ func (b *BlogsService) CreateBlog(
 	content string,
 ) (*types.Blog, error) {
 	createdBlog, err := b.dbClient.CreateBlog(ctx, authorId, title, content)
+	if err != nil {
+		return nil, err
+	}
+
+	err = b.rabbitMQClient.Publish(ctx, "blog.created", createdBlog)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +62,23 @@ func (b *BlogsService) UpdateBlog(
 		return nil, err
 	}
 
+	err = b.rabbitMQClient.Publish(ctx, "blog.updated", updatedBlog)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedBlog, nil
 }
 
 func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string) error {
 	err := b.dbClient.DeleteBlog(ctx, blogId)
+	if err != nil {
+		return err
+	}
+
+	err = b.rabbitMQClient.Publish(ctx, "blog.updated", map[string]bool{
+		"success": true,
+	})
 	if err != nil {
 		return err
 	}
