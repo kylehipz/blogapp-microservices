@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/constants"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
@@ -28,7 +29,7 @@ func (b *BlogsService) CreateBlog(
 		return nil, err
 	}
 
-	err = b.pubsubClient.Publish(ctx, "blog.created", createdBlog)
+	err = b.pubsubClient.Publish(ctx, constants.BLOG_CREATED, createdBlog)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (b *BlogsService) UpdateBlog(
 		return nil, err
 	}
 
-	err = b.pubsubClient.Publish(ctx, "blog.updated", updatedBlog)
+	err = b.pubsubClient.Publish(ctx, constants.BLOG_UPDATED, updatedBlog)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string) error {
 		return err
 	}
 
-	err = b.pubsubClient.Publish(ctx, "blog.updated", map[string]bool{
+	err = b.pubsubClient.Publish(ctx, constants.BLOG_DELETED, map[string]bool{
 		"success": true,
 	})
 	if err != nil {

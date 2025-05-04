@@ -5,6 +5,7 @@ import (
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/constants"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/utils"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
 )
@@ -15,7 +16,14 @@ type HomeFeedEventsHandler struct {
 }
 
 func NewHomeFeedEventsHandler(homeFeedService *services.HomeFeedService) *HomeFeedEventsHandler {
-	return &HomeFeedEventsHandler{homeFeedService: homeFeedService}
+	return &HomeFeedEventsHandler{
+		homeFeedService: homeFeedService,
+		events: []string{
+			constants.BLOG_CREATED,
+			constants.BLOG_UPDATED,
+			constants.BLOG_DELETED,
+		},
+	}
 }
 
 func (h *HomeFeedEventsHandler) blogCreated(payload *types.Blog) error {
@@ -37,7 +45,7 @@ func (h *HomeFeedEventsHandler) StartListener() {
 	messages := h.homeFeedService.ListenToEvents(h.events)
 
 	for message := range messages {
-		payload := message.Payload.(*types.Blog)
+		payload := utils.UnmarshalBlog(message.Payload.(map[string]interface{}))
 		switch message.Event {
 		case constants.BLOG_CREATED:
 			h.blogCreated(payload)

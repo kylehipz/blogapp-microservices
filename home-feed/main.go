@@ -60,16 +60,7 @@ func main() {
 
 	defer rabbitMQClient.CleanUp()
 
-	msgs, err := rabbitMQClient.Subscribe([]string{"blog.created", "blog.updated", "blog.deleted"})
-
-	go func() {
-		for msg := range msgs {
-			fmt.Printf("event: %s\n", msg.Event)
-			fmt.Printf("msg: %+v\n", msg.Payload)
-		}
-	}()
-
-	homeFeedRoutes := routes.New(conn, rdb)
+	homeFeedRoutes := routes.New(conn, rdb, rabbitMQClient)
 
 	apiServer.Run("/home-feed", homeFeedRoutes)
 }
