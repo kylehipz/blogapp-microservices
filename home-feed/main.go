@@ -10,7 +10,9 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/api"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/loadenv"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/labstack/echo/v4"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/routes"
@@ -44,7 +46,21 @@ func main() {
 
 	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
 
-	homeFeedRoutes := routes.New(conn, rdb)
+	rabbitConn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		panic(err)
+	}
+
+	ch, err := rabbitConn.Channel()
+	if err != nil {
+		panic(err)
+	}
+
+	rabbitMQClient := pubsub.NewRabbitMQClient(rabbitConn, ch, "blogapp", "home-feed", "home-feed")
+
+	defer rabbitMQClient.CleanUp()
+
+	homeFeedRoutes := routes.New(conn, rdb, rabbitMQClient)
 
 	apiServer.Run("/home-feed", homeFeedRoutes)
 }
