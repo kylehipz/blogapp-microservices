@@ -45,14 +45,16 @@ func (h *HomeFeedEventsHandler) StartListener() {
 	messages := h.homeFeedService.ListenToEvents(h.events)
 
 	for message := range messages {
-		payload := utils.UnmarshalBlog(message.Payload.(map[string]interface{}))
-		switch message.Event {
-		case constants.BLOG_CREATED:
-			h.blogCreated(payload)
-		case constants.BLOG_UPDATED:
-			h.blogUpdated(payload)
-		case constants.BLOG_DELETED:
-			h.blogDeleted(payload)
-		}
+		go func() {
+			payload := utils.UnmarshalBlog(message.Payload.(map[string]interface{}))
+			switch message.Event {
+			case constants.BLOG_CREATED:
+				h.blogCreated(payload)
+			case constants.BLOG_UPDATED:
+				h.blogUpdated(payload)
+			case constants.BLOG_DELETED:
+				h.blogDeleted(payload)
+			}
+		}()
 	}
 }
