@@ -6,19 +6,26 @@ import (
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/cache"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
 type HomeFeedService struct {
-	cacheClient cache.CacheClient
-	dbClient    db.DatabaseClient
+	cacheClient  cache.CacheClient
+	dbClient     db.DatabaseClient
+	pubsubClient pubsub.PubSubClient
 }
 
 func NewHomeFeedService(
 	dbClient db.DatabaseClient,
 	cacheClient cache.CacheClient,
+	pubsubClient pubsub.PubSubClient,
 ) *HomeFeedService {
-	return &HomeFeedService{dbClient: dbClient, cacheClient: cacheClient}
+	return &HomeFeedService{
+		dbClient:     dbClient,
+		cacheClient:  cacheClient,
+		pubsubClient: pubsubClient,
+	}
 }
 
 func (h *HomeFeedService) GetHomeFeed(
@@ -46,6 +53,15 @@ func (h *HomeFeedService) GetHomeFeed(
 
 		return dbBlogs, nil
 	}
+}
+
+func (h *HomeFeedService) ListenToEvents(events []string) <-chan *pubsub.Message {
+	messages, err := h.pubsubClient.Subscribe(events)
+	if err != nil {
+		panic(err)
+	}
+
+	return messages
 }
 
 func (h *HomeFeedService) generateHomeFeedCacheKey(

@@ -13,9 +13,9 @@ import (
 	"github.com/kylehipz/blogapp-microservices/blogs/internal/services"
 )
 
-func New(conn *pgx.Conn, rabbitMQClient *pubsub.RabbitMQClient) []*api.EchoAPIRoute {
+func New(conn *pgx.Conn, pubsubClient pubsub.PubSubClient) []*api.EchoAPIRoute {
 	postgresClient := db.NewPostgresClient(conn)
-	blogsService := services.NewBlogsService(postgresClient, rabbitMQClient)
+	blogsService := services.NewBlogsService(postgresClient, pubsubClient)
 	blogsHandler := handlers.NewBlogsHandler(blogsService)
 
 	routes := []*api.EchoAPIRoute{

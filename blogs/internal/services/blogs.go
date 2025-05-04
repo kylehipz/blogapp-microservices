@@ -9,18 +9,12 @@ import (
 )
 
 type BlogsService struct {
-	dbClient       db.DatabaseClient
-	rabbitMQClient *pubsub.RabbitMQClient
+	dbClient     db.DatabaseClient
+	pubsubClient pubsub.PubSubClient
 }
 
-func NewBlogsService(
-	dbClient db.DatabaseClient,
-	rabbitMQClient *pubsub.RabbitMQClient,
-) *BlogsService {
-	return &BlogsService{
-		dbClient:       dbClient,
-		rabbitMQClient: rabbitMQClient,
-	}
+func NewBlogsService(dbClient db.DatabaseClient, pubsubClient pubsub.PubSubClient) *BlogsService {
+	return &BlogsService{dbClient: dbClient, pubsubClient: pubsubClient}
 }
 
 func (b *BlogsService) CreateBlog(
@@ -34,7 +28,7 @@ func (b *BlogsService) CreateBlog(
 		return nil, err
 	}
 
-	err = b.rabbitMQClient.Publish(ctx, "blog.created", createdBlog)
+	err = b.pubsubClient.Publish(ctx, "blog.created", createdBlog)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +56,7 @@ func (b *BlogsService) UpdateBlog(
 		return nil, err
 	}
 
-	err = b.rabbitMQClient.Publish(ctx, "blog.updated", updatedBlog)
+	err = b.pubsubClient.Publish(ctx, "blog.updated", updatedBlog)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +70,7 @@ func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string) error {
 		return err
 	}
 
-	err = b.rabbitMQClient.Publish(ctx, "blog.updated", map[string]bool{
+	err = b.pubsubClient.Publish(ctx, "blog.updated", map[string]bool{
 		"success": true,
 	})
 	if err != nil {
