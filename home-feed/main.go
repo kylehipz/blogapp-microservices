@@ -46,7 +46,8 @@ func main() {
 
 	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
 
-	rabbitConn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	// connect to rabbitmq
+	rabbitConn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
 		panic(err)
 	}
