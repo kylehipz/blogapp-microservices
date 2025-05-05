@@ -2,7 +2,10 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/cache"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
@@ -34,24 +37,42 @@ func (h *HomeFeedService) GetHomeFeed(
 	createdAt string,
 	limit int32,
 ) ([]*types.Blog, error) {
-	cacheKey := h.generateHomeFeedCacheKey(userId, createdAt, limit)
-	cachedResult, err := h.cacheClient.Get(ctx, cacheKey)
+	cacheKey := h.generateHomeFeedCacheKey(userId)
+	cachedHomeFeed, err := h.cacheClient.Get(ctx, cacheKey)
 	if err == nil {
-		cachedBlogs := cachedResult.([]*types.Blog)
+		// requested is in cache
+		parsedHomeFeedFromCache := h.unmarshalBlogs(cachedHomeFeed)
 
-		return cachedBlogs, nil
+		requestedHomeFeedFromCache := h.getRequestedHomeFeed(parsedHomeFeedFromCache, createdAt)
+
+		if len(requestedHomeFeedFromCache) == 0 {
+			homeFeedFromDatabase, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
+			if err != nil {
+				return nil, err
+			}
+
+			err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
+			if err != nil {
+				return nil, err
+			}
+
+			return homeFeedFromDatabase, nil
+		}
+
+		return requestedHomeFeedFromCache, nil
 	} else {
-		dbBlogs, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
+		// cache is empty
+		homeFeedFromDatabase, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
 		if err != nil {
 			return nil, err
 		}
 
-		err = h.cacheClient.Set(ctx, cacheKey, dbBlogs)
+		err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
 		if err != nil {
 			return nil, err
 		}
 
-		return dbBlogs, nil
+		return homeFeedFromDatabase, nil
 	}
 }
 
@@ -64,10 +85,71 @@ func (h *HomeFeedService) ListenToEvents(events []string) <-chan *pubsub.Message
 	return messages
 }
 
-func (h *HomeFeedService) generateHomeFeedCacheKey(
-	user string,
+func (h *HomeFeedService) generateHomeFeedCacheKey(user string) string {
+	return fmt.Sprintf("%s:home-feed", user)
+}
+
+func (h *HomeFeedService) unmarshalBlogs(homeFeedStr []string) []*types.Blog {
+	blogs := []*types.Blog{}
+	for _, blogStr := range homeFeedStr {
+		blog := &types.Blog{}
+
+		err := json.Unmarshal([]byte(blogStr), blog)
+		if err != nil {
+			log.Println("Error decoding json", blogStr)
+			continue
+		}
+
+		blogs = append(blogs, blog)
+	}
+
+	return blogs
+}
+
+func (h *HomeFeedService) getRequestedHomeFeed(
+	homeFeed []*types.Blog,
 	createdAt string,
-	limit int32,
-) string {
-	return fmt.Sprintf("%s:%s:%d", user, createdAt, limit)
+) []*types.Blog {
+	requestedHomeFeed := []*types.Blog{}
+	var requestedCreatedAt time.Time
+	if createdAt == "now" {
+		requestedCreatedAt = time.Now()
+	} else {
+		t, err := time.Parse(time.RFC3339, createdAt)
+		requestedCreatedAt = t
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, blog := range homeFeed {
+		blogCreatedAt, err := time.Parse(time.RFC3339, blog.CreatedAt)
+		if err != nil {
+			log.Println("Error parsing date")
+			continue
+		}
+
+		if blogCreatedAt.Before(requestedCreatedAt) {
+			requestedHomeFeed = append(requestedHomeFeed, blog)
+		}
+	}
+
+	return requestedHomeFeed
+}
+
+func (h *HomeFeedService) pushToCache(
+	ctx context.Context,
+	cacheKey string,
+	homeFeed []*types.Blog,
+) error {
+	var values []any
+
+	for _, blog := range homeFeed {
+		b, _ := json.Marshal(blog)
+		values = append(values, b)
+	}
+
+	err := h.cacheClient.RPush(ctx, cacheKey, values...)
+
+	return err
 }

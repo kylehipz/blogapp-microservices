@@ -57,7 +57,7 @@ func (p *PostgresClient) GetHomeFeed(
 			},
 			Title:     "",
 			Content:   blog.Content,
-			CreatedAt: blog.CreatedAt.String(),
+			CreatedAt: blog.CreatedAt.Format(time.RFC3339),
 		})
 	}
 

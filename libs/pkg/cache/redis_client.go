@@ -16,20 +16,22 @@ func NewRedisClient(rdb *redis.Client) *RedisClient {
 	return &RedisClient{rdb: rdb}
 }
 
-func (r *RedisClient) Get(ctx context.Context, key string) (any, error) {
-	val, err := r.rdb.Get(ctx, key).Result()
+func (r *RedisClient) RPush(ctx context.Context, key string, values ...any) error {
+	_, err := r.rdb.RPush(ctx, key, values...).Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *RedisClient) Get(ctx context.Context, key string) ([]string, error) {
+	val, err := r.rdb.LRange(ctx, key, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	var parsed any
-
-	err = json.Unmarshal([]byte(val), parsed)
-	if err != nil {
-		return nil, err
-	}
-
-	return parsed, nil
+	return val, nil
 }
 
 func (r *RedisClient) Set(ctx context.Context, key string, value any) error {
