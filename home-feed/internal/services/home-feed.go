@@ -65,6 +65,37 @@ func (h *HomeFeedService) GetHomeFeed(
 	return requestedHomeFeedFromCache, nil
 }
 
+func (h *HomeFeedService) AddToCacheOfFollowers(
+	ctx context.Context,
+	blogFromEvent *types.Blog,
+) error {
+	followers, err := h.dbClient.GetFollowers(ctx, blogFromEvent.Author.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, follower := range followers {
+		cacheKey := h.generateHomeFeedCacheKey(follower.String())
+		cachedHomeFeed, err := h.cacheClient.Get(ctx, cacheKey)
+		if err != nil {
+			return err
+		}
+
+		if len(cachedHomeFeed) == 0 {
+			// no cache for this user
+			continue
+		}
+
+		bytes, err := json.Marshal(blogFromEvent)
+		if err != nil {
+			return err
+		}
+		h.cacheClient.LPush(ctx, cacheKey, bytes)
+	}
+
+	return nil
+}
+
 func (h *HomeFeedService) ListenToEvents(events []string) <-chan *pubsub.Message {
 	messages, err := h.pubsubClient.Subscribe(events)
 	if err != nil {

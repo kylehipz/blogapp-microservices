@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/constants"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/utils"
+	"github.com/labstack/gommon/log"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
 )
@@ -27,7 +29,11 @@ func NewHomeFeedEventsHandler(homeFeedService *services.HomeFeedService) *HomeFe
 }
 
 func (h *HomeFeedEventsHandler) blogCreated(payload *types.Blog) error {
-	fmt.Println("Blog created event handled")
+	log.Info("Received event blog.created")
+	if err := h.homeFeedService.AddToCacheOfFollowers(context.Background(), payload); err != nil {
+		fmt.Println(err)
+		return err
+	}
 	return nil
 }
 

@@ -25,6 +25,15 @@ func (r *RedisClient) RPush(ctx context.Context, key string, values ...any) erro
 	return nil
 }
 
+func (r *RedisClient) LPush(ctx context.Context, key string, values ...any) error {
+	_, err := r.rdb.LPush(ctx, key, values...).Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RedisClient) Get(ctx context.Context, key string) ([]string, error) {
 	val, err := r.rdb.LRange(ctx, key, 0, -1).Result()
 	if err != nil {

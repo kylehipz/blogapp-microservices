@@ -91,7 +91,7 @@ func (p *PostgresClient) CreateBlog(
 		},
 		Title:     resultBlog.Title,
 		Content:   resultBlog.Content,
-		CreatedAt: resultBlog.CreatedAt.String(),
+		CreatedAt: resultBlog.CreatedAt.Format(time.RFC3339),
 	}
 
 	return &createdBlog, err
@@ -116,7 +116,7 @@ func (p *PostgresClient) CreateUser(
 		ID:        resultUser.ID.String(),
 		Username:  resultUser.Username,
 		Email:     resultUser.Email,
-		CreatedAt: resultUser.CreatedAt.String(),
+		CreatedAt: resultUser.CreatedAt.Format(time.RFC3339),
 	}
 
 	return &createdUser, nil
@@ -149,7 +149,7 @@ func (p *PostgresClient) UpdateBlog(
 		},
 		Title:     blogResult.Title,
 		Content:   blogResult.Content,
-		CreatedAt: blogResult.CreatedAt.String(),
+		CreatedAt: blogResult.CreatedAt.Format(time.RFC3339),
 	}
 
 	return updatedBlog, err
@@ -187,7 +187,7 @@ func (p *PostgresClient) FindBlog(ctx context.Context, blogId string) (*types.Bl
 		},
 		Title:     resultBlog.Title,
 		Content:   resultBlog.Content,
-		CreatedAt: resultBlog.CreatedAt.String(),
+		CreatedAt: resultBlog.CreatedAt.Format(time.RFC3339),
 	}
 
 	return foundBlog, nil
@@ -215,7 +215,7 @@ func (p *PostgresClient) FindUserByUsername(
 		Email:     user.Email,
 		Username:  user.Username,
 		Password:  user.Password,
-		CreatedAt: user.CreatedAt.String(),
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 	}
 
 	return foundUser, nil
@@ -276,4 +276,18 @@ func (p *PostgresClient) DeleteFollow(
 	}
 
 	return nil
+}
+
+func (p *PostgresClient) GetFollowers(ctx context.Context, userId string) ([]uuid.UUID, error) {
+	parsedUserId, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	followers, err := p.queries.FindFollowers(ctx, parsedUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return followers, nil
 }

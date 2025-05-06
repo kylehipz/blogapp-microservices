@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
@@ -34,6 +36,7 @@ type DatabaseClient interface {
 	DeleteBlog(ctx context.Context, blogId string) error
 	FindBlog(ctx context.Context, blogId string) (*types.Blog, error)
 	FindUser(ctx context.Context, userId string) (*types.User, error)
+	GetFollowers(ctx context.Context, userId string) ([]uuid.UUID, error)
 	FindUserByEmail(ctx context.Context, email string) (*types.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*types.User, error)
 	CreateFollow(ctx context.Context, follower string, followee string) (*types.Follow, error)

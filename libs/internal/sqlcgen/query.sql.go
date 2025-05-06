@@ -119,6 +119,30 @@ func (q *Queries) FindBlog(ctx context.Context, id uuid.UUID) (Blog, error) {
 	return i, err
 }
 
+const findFollowers = `-- name: FindFollowers :many
+SELECT follower FROM follow WHERE followee = $1
+`
+
+func (q *Queries) FindFollowers(ctx context.Context, followee uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, findFollowers, followee)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var follower uuid.UUID
+		if err := rows.Scan(&follower); err != nil {
+			return nil, err
+		}
+		items = append(items, follower)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findUser = `-- name: FindUser :one
 SELECT id, username, email, password, created_at FROM users WHERE id = $1 LIMIT 1
 `
