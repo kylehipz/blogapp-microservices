@@ -39,29 +39,16 @@ func (h *HomeFeedService) GetHomeFeed(
 ) ([]*types.Blog, error) {
 	cacheKey := h.generateHomeFeedCacheKey(userId)
 	cachedHomeFeed, err := h.cacheClient.Get(ctx, cacheKey)
-	if err == nil {
-		// requested is in cache
-		parsedHomeFeedFromCache := h.unmarshalBlogs(cachedHomeFeed)
+	if err != nil {
+		return nil, err
+	}
 
-		requestedHomeFeedFromCache := h.getRequestedHomeFeed(parsedHomeFeedFromCache, createdAt)
+	parsedHomeFeedFromCache := h.unmarshalBlogs(cachedHomeFeed)
 
-		if len(requestedHomeFeedFromCache) == 0 {
-			homeFeedFromDatabase, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
-			if err != nil {
-				return nil, err
-			}
+	requestedHomeFeedFromCache := h.getRequestedHomeFeed(parsedHomeFeedFromCache, createdAt, limit)
 
-			err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
-			if err != nil {
-				return nil, err
-			}
-
-			return homeFeedFromDatabase, nil
-		}
-
-		return requestedHomeFeedFromCache, nil
-	} else {
-		// cache is empty
+	if len(requestedHomeFeedFromCache) == 0 {
+		// requested home feed is not yet in cache
 		homeFeedFromDatabase, err := h.dbClient.GetHomeFeed(ctx, userId, createdAt, limit)
 		if err != nil {
 			return nil, err
@@ -74,6 +61,8 @@ func (h *HomeFeedService) GetHomeFeed(
 
 		return homeFeedFromDatabase, nil
 	}
+
+	return requestedHomeFeedFromCache, nil
 }
 
 func (h *HomeFeedService) ListenToEvents(events []string) <-chan *pubsub.Message {
@@ -109,6 +98,7 @@ func (h *HomeFeedService) unmarshalBlogs(homeFeedStr []string) []*types.Blog {
 func (h *HomeFeedService) getRequestedHomeFeed(
 	homeFeed []*types.Blog,
 	createdAt string,
+	limit int32,
 ) []*types.Blog {
 	requestedHomeFeed := []*types.Blog{}
 	var requestedCreatedAt time.Time
@@ -122,7 +112,10 @@ func (h *HomeFeedService) getRequestedHomeFeed(
 		}
 	}
 
-	for _, blog := range homeFeed {
+	for index, blog := range homeFeed {
+		if int32(index) == limit {
+			break
+		}
 		blogCreatedAt, err := time.Parse(time.RFC3339, blog.CreatedAt)
 		if err != nil {
 			log.Println("Error parsing date")
@@ -147,6 +140,10 @@ func (h *HomeFeedService) pushToCache(
 	for _, blog := range homeFeed {
 		b, _ := json.Marshal(blog)
 		values = append(values, b)
+	}
+
+	if len(values) == 0 {
+		return nil
 	}
 
 	err := h.cacheClient.RPush(ctx, cacheKey, values...)

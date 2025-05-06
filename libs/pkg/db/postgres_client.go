@@ -55,7 +55,7 @@ func (p *PostgresClient) GetHomeFeed(
 			Author: &types.User{
 				ID: userId,
 			},
-			Title:     "",
+			Title:     blog.Title,
 			Content:   blog.Content,
 			CreatedAt: blog.CreatedAt.Format(time.RFC3339),
 		})
