@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/constants"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
@@ -45,7 +44,10 @@ func (h *HomeFeedEventsHandler) blogUpdated(payload *types.Blog) error {
 }
 
 func (h *HomeFeedEventsHandler) blogDeleted(payload *types.Blog) error {
-	fmt.Println("Blog deleted event handled")
+	log.Info("Received event blog.deleted")
+	if err := h.homeFeedService.DeleteInCacheOfFollowers(context.Background(), payload); err != nil {
+		return err
+	}
 	return nil
 }
 

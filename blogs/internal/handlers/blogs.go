@@ -77,9 +77,10 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 }
 
 func (b *BlogsHandler) DeleteBlog(c echo.Context) error {
-	blogID := c.Param("id")
+	blogId := c.Param("id")
+	userId := middlewares.GetUserID(c)
 
-	err := b.blogsService.DeleteBlog(c.Request().Context(), blogID)
+	err := b.blogsService.DeleteBlog(c.Request().Context(), blogId, userId)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}

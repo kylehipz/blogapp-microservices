@@ -145,6 +145,55 @@ func (h *HomeFeedService) UpdateInCacheOfFollowers(
 	return nil
 }
 
+func (h *HomeFeedService) DeleteInCacheOfFollowers(
+	ctx context.Context,
+	blogFromEvent *types.Blog,
+) error {
+	followers, err := h.dbClient.GetFollowers(ctx, blogFromEvent.Author.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, follower := range followers {
+		cacheKey := h.generateHomeFeedCacheKey(follower.String())
+		cachedHomeFeed, err := h.cacheClient.Get(ctx, cacheKey)
+		if err != nil {
+			return err
+		}
+
+		if len(cachedHomeFeed) == 0 {
+			// no cache for this user
+			continue
+		}
+
+		updatedHomeFeed := []*types.Blog{}
+
+		for _, blogStr := range cachedHomeFeed {
+			blog := &types.Blog{}
+			err := json.Unmarshal([]byte(blogStr), blog)
+			if err != nil {
+				continue
+			}
+
+			if blog.ID == blogFromEvent.ID {
+				continue
+			} else {
+				updatedHomeFeed = append(updatedHomeFeed, blog)
+			}
+		}
+
+		if err = h.cacheClient.Delete(ctx, cacheKey); err != nil {
+			continue
+		}
+
+		if err = h.pushToCache(ctx, cacheKey, updatedHomeFeed); err != nil {
+			continue
+		}
+	}
+
+	return nil
+}
+
 func (h *HomeFeedService) ListenToEvents(events []string) <-chan *pubsub.Message {
 	messages, err := h.pubsubClient.Subscribe(events)
 	if err != nil {
