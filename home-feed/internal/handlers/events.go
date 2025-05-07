@@ -31,14 +31,16 @@ func NewHomeFeedEventsHandler(homeFeedService *services.HomeFeedService) *HomeFe
 func (h *HomeFeedEventsHandler) blogCreated(payload *types.Blog) error {
 	log.Info("Received event blog.created")
 	if err := h.homeFeedService.AddToCacheOfFollowers(context.Background(), payload); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
 func (h *HomeFeedEventsHandler) blogUpdated(payload *types.Blog) error {
-	fmt.Println("Blog updated event handled")
+	log.Info("Received event blog.updated")
+	if err := h.homeFeedService.UpdateInCacheOfFollowers(context.Background(), payload); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -7,4 +7,5 @@ type CacheClient interface {
 	Set(ctx context.Context, key string, value any) error
 	RPush(ctx context.Context, key string, value ...any) error
 	LPush(ctx context.Context, key string, value ...any) error
+	Delete(ctx context.Context, key string) error
 }
