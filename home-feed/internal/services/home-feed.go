@@ -11,6 +11,8 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
+
+	"github.com/kylehipz/blogapp-microservices/home-feed/internal"
 )
 
 type HomeFeedService struct {
@@ -54,9 +56,11 @@ func (h *HomeFeedService) GetHomeFeed(
 			return nil, err
 		}
 
-		err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
-		if err != nil {
-			return nil, err
+		if len(parsedHomeFeedFromCache) < internal.CACHE_LIMIT {
+			err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return homeFeedFromDatabase, nil
@@ -90,7 +94,9 @@ func (h *HomeFeedService) AddToCacheOfFollowers(
 		if err != nil {
 			return err
 		}
-		h.cacheClient.LPush(ctx, cacheKey, bytes)
+		if err = h.cacheClient.LPush(ctx, cacheKey, bytes); err != nil {
+			return err
+		}
 	}
 
 	return nil
