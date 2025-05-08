@@ -56,6 +56,11 @@ func (r *RedisClient) Set(ctx context.Context, key string, value any) error {
 	return nil
 }
 
+func (r *RedisClient) SetExpiration(ctx context.Context, key string, duration time.Duration) error {
+	r.rdb.Expire(ctx, key, duration)
+	return nil
+}
+
 func (r *RedisClient) Delete(ctx context.Context, key string) error {
 	if _, err := r.rdb.Del(ctx, key).Result(); err != nil {
 		return err

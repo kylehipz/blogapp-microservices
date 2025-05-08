@@ -57,8 +57,11 @@ func (h *HomeFeedService) GetHomeFeed(
 		}
 
 		if len(parsedHomeFeedFromCache) < internal.CACHE_LIMIT {
-			err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase)
-			if err != nil {
+			if err = h.pushToCache(ctx, cacheKey, homeFeedFromDatabase); err != nil {
+				return nil, err
+			}
+
+			if err = h.cacheClient.SetExpiration(ctx, cacheKey, 1*time.Hour); err != nil {
 				return nil, err
 			}
 		}
