@@ -23,6 +23,9 @@ SELECT * FROM users WHERE username = $1 LIMIT 1;
 -- name: CreateFollow :one
 INSERT INTO follow (follower, followee) VALUES ($1, $2) RETURNING *;
 
+-- name: FindFollowers :many
+SELECT follower FROM follow WHERE followee = $1;
+
 -- name: DeleteFollow :exec
 DELETE FROM follow WHERE follower = $1 and followee = $2;
 

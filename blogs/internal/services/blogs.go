@@ -65,14 +65,15 @@ func (b *BlogsService) UpdateBlog(
 	return updatedBlog, nil
 }
 
-func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string) error {
+func (b *BlogsService) DeleteBlog(ctx context.Context, blogId string, userId string) error {
 	err := b.dbClient.DeleteBlog(ctx, blogId)
 	if err != nil {
 		return err
 	}
 
-	err = b.pubsubClient.Publish(ctx, constants.BLOG_DELETED, map[string]bool{
-		"success": true,
+	err = b.pubsubClient.Publish(ctx, constants.BLOG_DELETED, &types.Blog{
+		ID:     blogId,
+		Author: &types.User{ID: userId},
 	})
 	if err != nil {
 		return err
