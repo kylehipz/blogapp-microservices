@@ -45,7 +45,7 @@ func (h *HomeFeedService) GetHomeFeed(
 		return nil, err
 	}
 
-	parsedHomeFeedFromCache := h.unmarshalBlogs(cachedHomeFeed)
+	parsedHomeFeedFromCache, err := h.unmarshalBlogs(cachedHomeFeed)
 
 	requestedHomeFeedFromCache := h.getRequestedHomeFeed(parsedHomeFeedFromCache, createdAt, limit)
 
@@ -216,21 +216,20 @@ func (h *HomeFeedService) generateHomeFeedCacheKey(user string) string {
 	return fmt.Sprintf("%s:home-feed", user)
 }
 
-func (h *HomeFeedService) unmarshalBlogs(homeFeedStr []string) []*types.Blog {
+func (h *HomeFeedService) unmarshalBlogs(homeFeedStr []string) ([]*types.Blog, error) {
 	blogs := []*types.Blog{}
 	for _, blogStr := range homeFeedStr {
 		blog := &types.Blog{}
 
 		err := json.Unmarshal([]byte(blogStr), blog)
 		if err != nil {
-			log.Println("Error decoding json", blogStr)
-			continue
+			return nil, fmt.Errorf("error unmarshaling blog")
 		}
 
 		blogs = append(blogs, blog)
 	}
 
-	return blogs
+	return blogs, nil
 }
 
 func (h *HomeFeedService) getRequestedHomeFeed(

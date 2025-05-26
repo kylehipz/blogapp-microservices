@@ -11,6 +11,7 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/handlers"
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
@@ -20,12 +21,14 @@ func New(
 	conn *pgx.Conn,
 	rdb *redis.Client,
 	rabbitMQClient *pubsub.RabbitMQClient,
+	logger *zap.Logger,
 ) []*api.EchoAPIRoute {
 	postgresClient := db.NewPostgresClient(conn)
 	redisClient := cache.NewRedisClient(rdb)
+
 	homeFeedService := services.NewHomeFeedService(postgresClient, redisClient, rabbitMQClient)
 
-	homeFeedHandler := handlers.NewHomeFeedHandler(homeFeedService)
+	homeFeedHandler := handlers.NewHomeFeedHandler(homeFeedService, logger)
 	homeFeedEventsHandler := handlers.NewHomeFeedEventsHandler(homeFeedService)
 
 	go func() {

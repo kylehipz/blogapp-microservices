@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/jackc/pgx/v5"
@@ -13,6 +12,7 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/labstack/echo/v4"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/zap"
 
 	"github.com/kylehipz/blogapp-microservices/blogs/internal/routes"
 )
@@ -24,17 +24,20 @@ func main() {
 		loadenv.Load()
 	}
 
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
 	// start database
 	ctx := context.Background()
 
 	// start database
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("database connection error", zap.Error(err))
 	}
 	defer conn.Close(ctx)
 
-	log.Println("Successfully connected to the database")
+	logger.Info("database connected")
 
 	apiServerPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	apiServer := api.NewEchoAPIServer(apiServerPort)
@@ -45,12 +48,14 @@ func main() {
 
 	rabbitConn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
-		panic(err)
+		logger.Fatal("rabbitmq connection error")
 	}
+
+	logger.Info("rabbitmq connected")
 
 	ch, err := rabbitConn.Channel()
 	if err != nil {
-		panic(err)
+		logger.Fatal("rabbitmq channel error")
 	}
 
 	rabbitMQClient := pubsub.NewRabbitMQClient(rabbitConn, ch, "blogapp", "blogs", "blogs")
