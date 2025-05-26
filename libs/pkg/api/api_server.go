@@ -25,7 +25,6 @@ func NewEchoAPIServer(addr string) *EchoAPIServer {
 func (a *EchoAPIServer) Run(prefixPath string, routes []*EchoAPIRoute) {
 	a.RegisterRoutes(prefixPath, routes)
 	a.e.Pre(middleware.RemoveTrailingSlash())
-	a.e.Use(middleware.Logger())
 	a.e.Use(middleware.Recover())
 
 	a.e.Logger.Fatal(a.e.Start(a.addr))
