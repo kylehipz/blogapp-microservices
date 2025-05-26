@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/jackc/pgx/v5"
@@ -56,6 +55,8 @@ func main() {
 	if err != nil {
 		logger.Fatal("rabbitmq connection error")
 	}
+
+	logger.Info("rabbitmq connected")
 
 	ch, err := rabbitConn.Channel()
 	if err != nil {
