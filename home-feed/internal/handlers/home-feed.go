@@ -7,16 +7,21 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/services"
 )
 
 type HomeFeedHandler struct {
 	homeFeedService *services.HomeFeedService
+	logger          *zap.Logger
 }
 
-func NewHomeFeedHandler(homeFeedService *services.HomeFeedService) *HomeFeedHandler {
-	return &HomeFeedHandler{homeFeedService: homeFeedService}
+func NewHomeFeedHandler(
+	homeFeedService *services.HomeFeedService,
+	logger *zap.Logger,
+) *HomeFeedHandler {
+	return &HomeFeedHandler{homeFeedService: homeFeedService, logger: logger}
 }
 
 func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {

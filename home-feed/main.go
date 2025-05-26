@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal/routes"
 )
@@ -24,6 +25,9 @@ func main() {
 	if environment == "" || environment == "development" {
 		loadenv.Load()
 	}
+
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
 
 	ctx := context.Background()
 
@@ -43,8 +47,9 @@ func main() {
 	apiServer := api.NewEchoAPIServer(apiServerPort)
 
 	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(os.Getenv("JWT_SECRET"))
+	loggerMiddleware := middlewares.NewZapLoggerMiddleware(logger)
 
-	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware})
+	apiServer.Use([]echo.MiddlewareFunc{authenticationMiddleware, loggerMiddleware})
 
 	// connect to rabbitmq
 	rabbitConn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
@@ -61,7 +66,7 @@ func main() {
 
 	defer rabbitMQClient.CleanUp()
 
-	homeFeedRoutes := routes.New(conn, rdb, rabbitMQClient)
+	homeFeedRoutes := routes.New(conn, rdb, rabbitMQClient, logger)
 
 	apiServer.Run("/home-feed", homeFeedRoutes)
 }
