@@ -34,11 +34,11 @@ func main() {
 	// connect to postgres database
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("database connection error", zap.Error(err))
 	}
 	defer conn.Close(ctx)
 
-	log.Println("Successfully connected to the database")
+	logger.Info("database connected")
 
 	// connect to redis
 	rdb := redis.NewClient(&redis.Options{Addr: os.Getenv("REDIS_URL")})
@@ -54,12 +54,12 @@ func main() {
 	// connect to rabbitmq
 	rabbitConn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
 	if err != nil {
-		panic(err)
+		logger.Fatal("rabbitmq connection error")
 	}
 
 	ch, err := rabbitConn.Channel()
 	if err != nil {
-		panic(err)
+		logger.Fatal("rabbitmq channel error")
 	}
 
 	rabbitMQClient := pubsub.NewRabbitMQClient(rabbitConn, ch, "blogapp", "home-feed", "home-feed")
