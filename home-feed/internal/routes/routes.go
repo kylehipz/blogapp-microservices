@@ -26,7 +26,12 @@ func New(
 	postgresClient := db.NewPostgresClient(conn)
 	redisClient := cache.NewRedisClient(rdb)
 
-	homeFeedService := services.NewHomeFeedService(postgresClient, redisClient, rabbitMQClient)
+	homeFeedService := services.NewHomeFeedService(
+		postgresClient,
+		redisClient,
+		rabbitMQClient,
+		logger,
+	)
 
 	homeFeedHandler := handlers.NewHomeFeedHandler(homeFeedService, logger)
 	homeFeedEventsHandler := handlers.NewHomeFeedEventsHandler(homeFeedService)
