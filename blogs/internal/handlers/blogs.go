@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/errs"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/labstack/echo/v4"
 
@@ -27,7 +28,7 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 	author := middlewares.GetUserID(c)
 
 	if err := c.Bind(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	createdBlog, err := b.blogsService.CreateBlog(
@@ -37,7 +38,7 @@ func (b *BlogsHandler) CreateBlog(c echo.Context) error {
 		body.Content,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusCreated, createdBlog)
@@ -48,7 +49,7 @@ func (b *BlogsHandler) GetBlog(c echo.Context) error {
 
 	blog, err := b.blogsService.GetBlog(c.Request().Context(), blogID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, blog)
@@ -60,7 +61,7 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 	body := new(CreateBlogRequestBody)
 
 	if err := c.Bind(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	updateBlog, err := b.blogsService.UpdateBlog(
@@ -70,7 +71,7 @@ func (b *BlogsHandler) UpdateBlog(c echo.Context) error {
 		body.Content,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, updateBlog)
@@ -80,9 +81,8 @@ func (b *BlogsHandler) DeleteBlog(c echo.Context) error {
 	blogId := c.Param("id")
 	userId := middlewares.GetUserID(c)
 
-	err := b.blogsService.DeleteBlog(c.Request().Context(), blogId, userId)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	if err := b.blogsService.DeleteBlog(c.Request().Context(), blogId, userId); err != nil {
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"success": true})

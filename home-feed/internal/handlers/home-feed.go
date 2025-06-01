@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/errs"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
@@ -46,7 +47,7 @@ func (h *HomeFeedHandler) GetHomeFeed(c echo.Context) error {
 		int32(limit),
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	if homeFeed == nil {

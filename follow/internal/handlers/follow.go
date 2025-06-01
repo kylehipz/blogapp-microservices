@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/errs"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/middlewares"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 	"github.com/labstack/echo/v4"
@@ -31,12 +32,12 @@ func (f *FollowHandler) FollowUser(c echo.Context) error {
 	body := new(FollowUserRequestBody)
 
 	if err := c.Bind(body); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	createdFollow, err := f.followService.FollowUser(c.Request().Context(), follower, body.Followee)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, createdFollow)
@@ -51,9 +52,9 @@ func (f *FollowHandler) UnfollowUser(c echo.Context) error {
 	// parse request body
 	body := new(FollowUserRequestBody)
 
-	err := f.followService.UnfollowUser(c.Request().Context(), follower, body.Followee)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	ctx := c.Request().Context()
+	if err := f.followService.UnfollowUser(ctx, follower, body.Followee); err != nil {
+		return echo.NewHTTPError(errs.GetHttpStatusCode(err), err.Error())
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"success": true})
