@@ -11,6 +11,7 @@ import (
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/db"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/pubsub"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
+	"go.uber.org/zap"
 
 	"github.com/kylehipz/blogapp-microservices/home-feed/internal"
 )
@@ -19,17 +20,20 @@ type HomeFeedService struct {
 	cacheClient  cache.CacheClient
 	dbClient     db.DatabaseClient
 	pubsubClient pubsub.PubSubClient
+	logger       *zap.Logger
 }
 
 func NewHomeFeedService(
 	dbClient db.DatabaseClient,
 	cacheClient cache.CacheClient,
 	pubsubClient pubsub.PubSubClient,
+	logger *zap.Logger,
 ) *HomeFeedService {
 	return &HomeFeedService{
 		dbClient:     dbClient,
 		cacheClient:  cacheClient,
 		pubsubClient: pubsubClient,
+		logger:       logger,
 	}
 }
 

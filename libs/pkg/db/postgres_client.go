@@ -2,12 +2,14 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/kylehipz/blogapp-microservices/libs/internal/sqlcgen"
+	"github.com/kylehipz/blogapp-microservices/libs/pkg/errs"
 	"github.com/kylehipz/blogapp-microservices/libs/pkg/types"
 )
 
@@ -29,7 +31,7 @@ func (p *PostgresClient) GetHomeFeed(
 ) ([]*types.Blog, error) {
 	parsedUserId, err := uuid.Parse(userId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 	var t time.Time
 	if createdAt == "now" {
@@ -37,7 +39,7 @@ func (p *PostgresClient) GetHomeFeed(
 	} else {
 		t, err = time.Parse(time.RFC3339, createdAt)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", errs.ApplicationError, err)
 		}
 	}
 
@@ -46,6 +48,9 @@ func (p *PostgresClient) GetHomeFeed(
 		CreatedAt: t,
 		Limit:     limit,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
+	}
 
 	blogs := []*types.Blog{}
 
@@ -72,7 +77,7 @@ func (p *PostgresClient) CreateBlog(
 ) (*types.Blog, error) {
 	parsedAuthorId, err := uuid.Parse(authorId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	resultBlog, err := p.queries.CreateBlog(ctx, sqlcgen.CreateBlogParams{
@@ -81,7 +86,7 @@ func (p *PostgresClient) CreateBlog(
 		Content: content,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	createdBlog := types.Blog{
@@ -94,7 +99,7 @@ func (p *PostgresClient) CreateBlog(
 		CreatedAt: resultBlog.CreatedAt.Format(time.RFC3339),
 	}
 
-	return &createdBlog, err
+	return &createdBlog, nil
 }
 
 func (p *PostgresClient) CreateUser(
@@ -109,7 +114,7 @@ func (p *PostgresClient) CreateUser(
 		Password: password,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	createdUser := types.User{
@@ -139,7 +144,7 @@ func (p *PostgresClient) UpdateBlog(
 		Content: content,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	updatedBlog := &types.Blog{
@@ -152,18 +157,18 @@ func (p *PostgresClient) UpdateBlog(
 		CreatedAt: blogResult.CreatedAt.Format(time.RFC3339),
 	}
 
-	return updatedBlog, err
+	return updatedBlog, nil
 }
 
 func (p *PostgresClient) DeleteBlog(ctx context.Context, blogId string) error {
 	parsedBlogId, err := uuid.Parse(blogId)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	err = p.queries.DeleteBlog(ctx, parsedBlogId)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	return nil
@@ -172,12 +177,12 @@ func (p *PostgresClient) DeleteBlog(ctx context.Context, blogId string) error {
 func (p *PostgresClient) FindBlog(ctx context.Context, blogId string) (*types.Blog, error) {
 	parsedBlogId, err := uuid.Parse(blogId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	resultBlog, err := p.queries.FindBlog(ctx, parsedBlogId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	foundBlog := &types.Blog{
@@ -207,7 +212,7 @@ func (p *PostgresClient) FindUserByUsername(
 ) (*types.User, error) {
 	user, err := p.queries.FindUserByUsername(ctx, username)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	foundUser := &types.User{
@@ -228,12 +233,12 @@ func (p *PostgresClient) CreateFollow(
 ) (*types.Follow, error) {
 	parsedFollowerId, err := uuid.Parse(followerId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	parsedFolloweeId, err := uuid.Parse(followeeId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	followResult, err := p.queries.CreateFollow(ctx, sqlcgen.CreateFollowParams{
@@ -241,7 +246,7 @@ func (p *PostgresClient) CreateFollow(
 		Followee: parsedFolloweeId,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	createdFollow := &types.Follow{
@@ -259,12 +264,12 @@ func (p *PostgresClient) DeleteFollow(
 ) error {
 	parsedFollowerId, err := uuid.Parse(followerId)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	parsedFolloweeId, err := uuid.Parse(followeeId)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	err = p.queries.DeleteFollow(ctx, sqlcgen.DeleteFollowParams{
@@ -272,7 +277,7 @@ func (p *PostgresClient) DeleteFollow(
 		Followee: parsedFolloweeId,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	return nil
@@ -281,12 +286,12 @@ func (p *PostgresClient) DeleteFollow(
 func (p *PostgresClient) GetFollowers(ctx context.Context, userId string) ([]uuid.UUID, error) {
 	parsedUserId, err := uuid.Parse(userId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.ValidationError, err)
 	}
 
 	followers, err := p.queries.FindFollowers(ctx, parsedUserId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errs.DatabaseError, err)
 	}
 
 	return followers, nil
